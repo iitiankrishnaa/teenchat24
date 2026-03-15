@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>teenchat24.online - Preview</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0c29;
+            --neon-purple: #bc13fe;
+            --neon-blue: #00d2ff;
+        }
+        body {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+        }
+        .neon-text {
+            background: linear-gradient(to right, #00d2ff, #bc13fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn-neon-purple {
+            background: var(--neon-purple);
+            box-shadow: 0 0 15px rgba(188, 19, 254, 0.4);
+            transition: 0.3s;
+        }
+        .btn-neon-purple:hover {
+            box-shadow: 0 0 25px rgba(188, 19, 254, 0.7);
+            transform: translateY(-2px);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .float { animation: float 4s ease-in-out infinite; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            const [page, setPage] = useState('home');
+
+            if (page === 'home') {
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-screen p-6 relative">
+                        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600 rounded-full blur-[120px] opacity-20"></div>
+                        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-cyan-600 rounded-full blur-[120px] opacity-20"></div>
+
+                        <div className="glass p-12 max-w-2xl w-full text-center z-10">
+                            <h1 className="text-6xl font-extrabold neon-text mb-4 float">teenchat24.online</h1>
+                            <p className="text-gray-400 text-xl mb-10">Modern social chat for the next generation. Join the vibe.</p>
+                            
+                            <div className="flex flex-wrap gap-4 justify-center mb-12">
+                                <button onClick={() => setPage('chat')} className="btn-neon-purple px-8 py-3 rounded-lg font-bold uppercase tracking-wider">Start Chat</button>
+                                <button className="border border-white/20 px-8 py-3 rounded-lg font-bold hover:bg-white/10 transition">Guest Login</button>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-6">
+                                <div className="p-4 rounded-xl bg-white/5">
+                                    <div className="text-2xl font-bold text-cyan-400">1,240+</div>
+                                    <div className="text-xs text-gray-500 uppercase">Online</div>
+                                </div>
+                                <div className="p-4 rounded-xl bg-white/5">
+                                    <div className="text-2xl font-bold text-purple-400">Fast</div>
+                                    <div className="text-xs text-gray-500 uppercase">Socket.io</div>
+                                </div>
+                                <div className="p-4 rounded-xl bg-white/5">
+                                    <div className="text-2xl font-bold text-green-400">Secure</div>
+                                    <div className="text-xs text-gray-500 uppercase">Moderated</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="flex h-screen p-4 gap-4 overflow-hidden">
+                    {/* Sidebar */}
+                    <div className="glass w-64 flex flex-col p-4">
+                        <h2 className="text-xl font-bold mb-8 neon-text">TEENCHAT24</h2>
+                        <div className="flex-1 space-y-2">
+                            {['General', 'Gaming', 'Music', 'Vibe'].map(r => (
+                                <div key={r} className={`p-3 rounded-lg cursor-pointer ${r === 'General' ? 'bg-white/10' : 'hover:bg-white/5'}`}>
+                                    # {r}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="glass p-3 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500"></div>
+                            <div>
+                                <div className="text-sm font-bold">PreviewUser</div>
+                                <div className="text-[10px] text-green-400">● Online</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Chat Area */}
+                    <div className="glass flex-1 flex flex-col">
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                            <h3 className="font-bold"># General</h3>
+                            <button onClick={() => setPage('home')} className="text-xs text-gray-400 hover:text-white">Exit</button>
+                        </div>
+                        <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+                            <div className="flex gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-cyan-900 border border-cyan-500/30 flex items-center justify-center">A</div>
+                                <div>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="font-bold text-cyan-400">Alex</span>
+                                        <span className="text-[10px] text-gray-500">4:20 PM</span>
+                                    </div>
+                                    <p className="text-gray-300">Yo, this new neon design is fire! 🔥</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center">S</div>
+                                <div>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="font-bold text-gray-400">System</span>
+                                        <span className="text-[10px] text-gray-500">4:21 PM</span>
+                                    </div>
+                                    <p className="text-gray-500 italic">User "NeonKiwi" joined the chat.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-4">
+                            <div className="glass bg-white/10 p-2 flex gap-3 items-center">
+                                <button className="w-10 h-10 hover:bg-white/10 rounded-lg">+</button>
+                                <input placeholder="Message #General..." className="flex-1 bg-transparent border-none outline-none" />
+                                <button className="px-4 py-2 bg-purple-600 rounded-lg font-bold">Send</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
