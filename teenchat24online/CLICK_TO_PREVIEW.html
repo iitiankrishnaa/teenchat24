@@ -111,6 +111,22 @@
 
     .meta-card { border: 1px solid var(--line); border-radius: 10px; background: #20263a; padding: 9px; margin-bottom: 8px; font-size: .84rem; }
 
+    .profile-chip { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.2);
+      background: #2a3044;
+      object-fit: cover;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: #fff;
+      overflow: hidden;
+    }
+    .avatar.lg { width: 46px; height: 46px; }
+
     .private-popup, .settings-popup { position: fixed; right: 16px; bottom: 16px; width: min(370px, 92vw); padding: 10px; display: none; z-index: 20; }
     .private-popup.active, .settings-popup.active { display: block; }
     .private-body { height: 160px; overflow: auto; display: grid; gap: 6px; margin: 8px 0; }
@@ -237,7 +253,10 @@
               <section class="dm-main">
                 <header class="dm-header">
                   <div>
-                    <strong id="dmTargetName">Select contact</strong>
+                    <div class="profile-chip">
+                      <img id="dmTargetAvatar" class="avatar" alt="DM avatar" src="" />
+                      <strong id="dmTargetName">Select contact</strong>
+                    </div>
                     <div class="dm-status" id="dmTargetStatus">Last seen recently</div>
                   </div>
                   <div class="dm-actions">
@@ -263,6 +282,17 @@
           <div class="meta-card"><strong id="roomStat">Room: General</strong><div class="muted">Switch room or DM mode</div></div>
           <div class="meta-card"><strong id="messageStat">Messages: 0</strong><div class="muted">Live count + interactions</div></div>
           <div class="meta-card"><strong>DM Features</strong><div class="muted">Unread badges, ticks, call buttons, block action</div></div>
+          <div class="meta-card">
+            <strong>My WhatsApp Profile</strong>
+            <div class="profile-chip" style="margin-top:8px;">
+              <img id="myProfileAvatar" class="avatar lg" alt="My profile picture" src="" />
+              <div>
+                <div id="myProfileName">TeenTalk User</div>
+                <div id="myProfileAbout" class="muted" style="font-size:.76rem;">About: Hey there! I'm using TeenTalk.</div>
+              </div>
+            </div>
+            <button class="btn" id="editProfileBtn" style="width:100%;">Edit About & Profile Picture</button>
+          </div>
         </aside>
       </div>
     </section>
@@ -280,6 +310,18 @@
     <label class="muted" style="display:block; margin-bottom:7px;"><input type="checkbox" id="compactToggle" /> Compact public messages</label>
     <label class="muted" style="display:block; margin-bottom:7px;"><input type="checkbox" id="muteToggle" /> Mute fake public replies</label>
     <button class="btn primary" id="saveSettingsBtn" style="width:100%;">Save Settings</button>
+  </aside>
+
+  <aside id="profilePopup" class="glass settings-popup" style="bottom: 92px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;"><strong>WhatsApp Profile Settings</strong><button class="btn ghost" id="closeProfile" style="padding:5px 8px;">✕</button></div>
+    <label class="muted" style="display:block; margin-bottom:6px;">Profile Picture URL</label>
+    <input id="profilePicInput" placeholder="https://..." style="margin-bottom:8px;" />
+    <label class="muted" style="display:block; margin-bottom:6px;">About</label>
+    <input id="aboutInput" maxlength="80" placeholder="Hey there! I'm using TeenTalk." style="margin-bottom:8px;" />
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <button class="btn danger" id="removePicBtn">Remove Picture</button>
+      <button class="btn primary" id="saveProfileBtn">Save Profile</button>
+    </div>
   </aside>
 
   <div id="toast" class="toast"></div>
@@ -307,6 +349,7 @@
     const dmPanel = document.getElementById('dmPanel');
 
     const dmContactsEl = document.getElementById('dmContacts');
+    const dmTargetAvatar = document.getElementById('dmTargetAvatar');
     const dmTargetName = document.getElementById('dmTargetName');
     const dmTargetStatus = document.getElementById('dmTargetStatus');
     const dmMessagesEl = document.getElementById('dmMessages');
@@ -328,6 +371,7 @@
     const enterGuest = document.getElementById('enterGuest');
 
     const settingsBtn = document.getElementById('settingsBtn');
+    const editProfileBtn = document.getElementById('editProfileBtn');
     const clearRoomBtn = document.getElementById('clearRoomBtn');
     const settingsPopup = document.getElementById('settingsPopup');
     const closeSettings = document.getElementById('closeSettings');
@@ -335,6 +379,16 @@
     const notifToggle = document.getElementById('notifToggle');
     const compactToggle = document.getElementById('compactToggle');
     const muteToggle = document.getElementById('muteToggle');
+
+    const profilePopup = document.getElementById('profilePopup');
+    const closeProfile = document.getElementById('closeProfile');
+    const profilePicInput = document.getElementById('profilePicInput');
+    const aboutInput = document.getElementById('aboutInput');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+    const removePicBtn = document.getElementById('removePicBtn');
+    const myProfileAvatar = document.getElementById('myProfileAvatar');
+    const myProfileName = document.getElementById('myProfileName');
+    const myProfileAbout = document.getElementById('myProfileAbout');
 
     const privatePopup = document.getElementById('privatePopup');
     const privateTitle = document.getElementById('privateTitle');
@@ -348,10 +402,10 @@
     const rooms = ['General', 'Gaming', 'Music', 'Study', 'Confessions'];
     const users = ['NovaKid', 'PixelRush', 'LunaVibe', 'SkyByte', 'ModZed', 'CocoaCloud', 'VioletRider'];
     const dmContacts = [
-      { name: 'NovaKid', lastSeen: 'online', unread: 2, blocked: false },
-      { name: 'LunaVibe', lastSeen: 'last seen 2m ago', unread: 0, blocked: false },
-      { name: 'SkyByte', lastSeen: 'last seen 9m ago', unread: 1, blocked: false },
-      { name: 'CocoaCloud', lastSeen: 'online', unread: 0, blocked: false }
+      { name: 'NovaKid', lastSeen: 'online', unread: 2, blocked: false, about: 'Designing neon themes ✨' },
+      { name: 'LunaVibe', lastSeen: 'last seen 2m ago', unread: 0, blocked: false, about: 'Music lover 🎧' },
+      { name: 'SkyByte', lastSeen: 'last seen 9m ago', unread: 1, blocked: false, about: 'Study + coding buddy' },
+      { name: 'CocoaCloud', lastSeen: 'online', unread: 0, blocked: false, about: 'Coffee and chill chats ☕' }
     ];
 
     const roomMessages = {
@@ -383,6 +437,7 @@
     let messageId = 1000;
     let typingTimeout;
     const settings = { notifications: true, compact: false, muteFakeReplies: false };
+    const profile = { about: "Hey there! I'm using TeenTalk.", photoUrl: '' };
 
     function notify(msg) {
       if (!settings.notifications) return;
@@ -396,6 +451,7 @@
       if (id === 'chat') {
         currentUserLabel.textContent = currentUser;
         activeRoomLabel.textContent = `#${currentRoom}`;
+        renderMyProfileCard();
         renderRooms();
         renderUsers();
         renderStories();
@@ -410,6 +466,19 @@
 
     function getTime() {
       return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function avatarFor(name, photoUrl = '') {
+      if (photoUrl && /^https?:\/\//i.test(photoUrl)) return photoUrl;
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=22293d&color=ffffff&size=96`;
+    }
+
+    function renderMyProfileCard() {
+      myProfileName.textContent = currentUser;
+      myProfileAbout.textContent = `About: ${profile.about}`;
+      myProfileAvatar.src = avatarFor(currentUser, profile.photoUrl);
+      profilePicInput.value = profile.photoUrl;
+      aboutInput.value = profile.about;
     }
 
     function renderRooms() {
@@ -524,7 +593,14 @@
       dmContacts.forEach(c => {
         const row = document.createElement('div');
         row.className = `contact ${c.name === currentDM ? 'active' : ''}`;
-        row.innerHTML = `<div class="contact-top"><strong>${c.name}</strong><span>${c.unread ? `<span class='badge'>${c.unread}</span>` : ''}</span></div><div class="muted" style="font-size:.74rem;">${c.blocked ? 'blocked' : c.lastSeen}</div>`;
+        row.innerHTML = `
+          <div style="display:flex; gap:8px; align-items:center;">
+            <img class="avatar" src="${avatarFor(c.name)}" alt="${c.name}" />
+            <div style="flex:1; min-width:0;">
+              <div class="contact-top"><strong>${c.name}</strong><span>${c.unread ? `<span class='badge'>${c.unread}</span>` : ''}</span></div>
+              <div class="muted" style="font-size:.74rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.blocked ? 'blocked' : c.lastSeen} • ${c.about || 'Hey there! I am on TeenTalk.'}</div>
+            </div>
+          </div>`;
         row.onclick = () => { currentDM = c.name; c.unread = 0; renderDMContacts(); renderDMThread(); };
         dmContactsEl.appendChild(row);
       });
@@ -538,7 +614,8 @@
     function renderDMThread() {
       const contact = dmContacts.find(c => c.name === currentDM);
       dmTargetName.textContent = contact ? contact.name : 'Select contact';
-      dmTargetStatus.textContent = contact ? (contact.blocked ? 'Blocked contact' : contact.lastSeen) : '';
+      dmTargetAvatar.src = contact ? avatarFor(contact.name) : avatarFor('TeenTalk');
+      dmTargetStatus.textContent = contact ? (contact.blocked ? 'Blocked contact' : `${contact.lastSeen} • ${contact.about || ''}`) : '';
       dmMessagesEl.innerHTML = '';
       (dmThreads[currentDM] || []).forEach(m => {
         const b = document.createElement('div');
@@ -637,7 +714,12 @@
     };
 
     settingsBtn.onclick = () => settingsPopup.classList.add('active');
+    editProfileBtn.onclick = () => {
+      renderMyProfileCard();
+      profilePopup.classList.add('active');
+    };
     closeSettings.onclick = () => settingsPopup.classList.remove('active');
+    closeProfile.onclick = () => profilePopup.classList.remove('active');
     saveSettingsBtn.onclick = () => {
       settings.notifications = notifToggle.checked;
       settings.compact = compactToggle.checked;
@@ -645,6 +727,22 @@
       settingsPopup.classList.remove('active');
       renderMessages();
       notify('Settings updated');
+    };
+
+    saveProfileBtn.onclick = () => {
+      profile.about = aboutInput.value.trim() || "Hey there! I'm using TeenTalk.";
+      const maybeUrl = profilePicInput.value.trim();
+      profile.photoUrl = /^https?:\/\//i.test(maybeUrl) ? maybeUrl : '';
+      profilePopup.classList.remove('active');
+      renderMyProfileCard();
+      notify('Profile updated');
+    };
+
+    removePicBtn.onclick = () => {
+      profile.photoUrl = '';
+      profilePicInput.value = '';
+      renderMyProfileCard();
+      notify('Profile picture removed');
     };
 
     clearRoomBtn.onclick = () => { roomMessages[currentRoom] = []; renderMessages(); notify('Room cleared'); };
