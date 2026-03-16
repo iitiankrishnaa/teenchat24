@@ -134,6 +134,12 @@
     .toast { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); border: 1px solid var(--line); border-radius: 10px; padding: 8px 11px; background: rgba(17,19,28,.95); opacity: 0; pointer-events: none; transition: .2s; z-index: 30; }
     .toast.show { opacity: 1; }
 
+    .call-popup { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, 92vw); padding: 12px; display: none; z-index: 25; }
+    .call-popup.active { display: block; }
+    .call-members { margin: 10px 0; max-height: 190px; overflow: auto; display: grid; gap: 6px; }
+    .call-member { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:7px 8px; border:1px solid var(--line); border-radius:10px; background:#23283a; }
+    .call-status { color: var(--ok); font-size: .78rem; }
+
     @media (max-width: 1100px) { .chat-layout { grid-template-columns: 240px 1fr; } .meta { display: none; } }
     @media (max-width: 860px) {
       .chat-page { height: auto; }
@@ -213,6 +219,8 @@
           <span class="pill" id="activeRoomLabel">#General</span>
         </div>
         <div class="top-right">
+          <button class="btn" id="groupAudioBtn">🔊 Group Audio</button>
+          <button class="btn" id="groupVideoBtn">📹 Group Video</button>
           <button class="btn" id="settingsBtn">Settings</button>
           <button class="btn danger" id="clearRoomBtn">Clear Room</button>
         </div>
@@ -324,6 +332,21 @@
     </div>
   </aside>
 
+
+
+  <aside id="callPopup" class="glass call-popup">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+      <strong id="callTitle">Calling...</strong>
+      <button class="btn ghost" id="closeCall" style="padding:5px 8px;">✕</button>
+    </div>
+    <div id="callSubtitle" class="muted" style="font-size:.82rem; margin-top:5px;">Connecting...</div>
+    <div id="callMembers" class="call-members"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <button class="btn" id="minimizeCallBtn">Minimize</button>
+      <button class="btn danger" id="endCallBtn">End Call</button>
+    </div>
+  </aside>
+
   <div id="toast" class="toast"></div>
 
   <script>
@@ -370,6 +393,8 @@
     const guestRoomEl = document.getElementById('guestRoom');
     const enterGuest = document.getElementById('enterGuest');
 
+    const groupAudioBtn = document.getElementById('groupAudioBtn');
+    const groupVideoBtn = document.getElementById('groupVideoBtn');
     const settingsBtn = document.getElementById('settingsBtn');
     const editProfileBtn = document.getElementById('editProfileBtn');
     const clearRoomBtn = document.getElementById('clearRoomBtn');
@@ -396,6 +421,14 @@
     const privateForm = document.getElementById('privateForm');
     const privateInput = document.getElementById('privateInput');
     const closePrivate = document.getElementById('closePrivate');
+
+    const callPopup = document.getElementById('callPopup');
+    const callTitle = document.getElementById('callTitle');
+    const callSubtitle = document.getElementById('callSubtitle');
+    const callMembers = document.getElementById('callMembers');
+    const closeCall = document.getElementById('closeCall');
+    const minimizeCallBtn = document.getElementById('minimizeCallBtn');
+    const endCallBtn = document.getElementById('endCallBtn');
 
     const toast = document.getElementById('toast');
 
@@ -479,6 +512,32 @@
       myProfileAvatar.src = avatarFor(currentUser, profile.photoUrl);
       profilePicInput.value = profile.photoUrl;
       aboutInput.value = profile.about;
+    }
+
+
+
+    function openCall(type, mode) {
+      const group = mode === 'group';
+      const title = group
+        ? `${type === 'video' ? '📹' : '🔊'} Group ${type === 'video' ? 'Video' : 'Audio'} Call`
+        : `${type === 'video' ? '🎥' : '📞'} ${type === 'video' ? 'Video' : 'Audio'} Call with ${currentDM}`;
+      callTitle.textContent = title;
+      callSubtitle.textContent = group
+        ? `Room #${currentRoom} • ${users.length + 1} participants invited`
+        : `1-to-1 • ${currentDM} • ringing...`;
+
+      callMembers.innerHTML = '';
+      const members = group ? [currentUser, ...users.slice(0, 6)] : [currentUser, currentDM];
+      members.forEach((name, i) => {
+        const row = document.createElement('div');
+        row.className = 'call-member';
+        const state = i === 0 ? 'You' : (i % 2 ? 'Ringing' : 'Connected');
+        row.innerHTML = `<span>${name}</span><span class="call-status">${state}</span>`;
+        callMembers.appendChild(row);
+      });
+
+      callPopup.classList.add('active');
+      notify(group ? 'Group call started (demo)' : '1-to-1 call started (demo)');
     }
 
     function renderRooms() {
@@ -701,8 +760,10 @@
     dmEmojiBtn.onclick = () => { dmInput.value += ' 😊'; dmInput.focus(); };
     dmAttachBtn.onclick = () => notify('DM attachment UI (demo)');
 
-    voiceCallBtn.onclick = () => notify(`Starting voice call with ${currentDM} (demo)`);
-    videoCallBtn.onclick = () => notify(`Starting video call with ${currentDM} (demo)`);
+    voiceCallBtn.onclick = () => openCall('audio', 'dm');
+    videoCallBtn.onclick = () => openCall('video', 'dm');
+    groupAudioBtn.onclick = () => openCall('audio', 'group');
+    groupVideoBtn.onclick = () => openCall('video', 'group');
     blockBtn.onclick = () => {
       const c = dmContacts.find(x => x.name === currentDM);
       if (!c) return;
@@ -744,6 +805,10 @@
       renderMyProfileCard();
       notify('Profile picture removed');
     };
+
+    closeCall.onclick = () => { callPopup.classList.remove('active'); notify('Call closed'); };
+    endCallBtn.onclick = () => { callPopup.classList.remove('active'); notify('Call ended'); };
+    minimizeCallBtn.onclick = () => { callPopup.classList.remove('active'); notify('Call minimized'); };
 
     clearRoomBtn.onclick = () => { roomMessages[currentRoom] = []; renderMessages(); notify('Room cleared'); };
     searchUsersEl.oninput = renderUsers;
