@@ -1,160 +1,738 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>teenchat24.online - Preview</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-dark: #0f0c29;
-            --neon-purple: #bc13fe;
-            --neon-blue: #00d2ff;
-        }
-        body {
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            color: white;
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-        }
-        .neon-text {
-            background: linear-gradient(to right, #00d2ff, #bc13fe);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .btn-neon-purple {
-            background: var(--neon-purple);
-            box-shadow: 0 0 15px rgba(188, 19, 254, 0.4);
-            transition: 0.3s;
-        }
-        .btn-neon-purple:hover {
-            box-shadow: 0 0 25px rgba(188, 19, 254, 0.7);
-            transform: translateY(-2px);
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        .float { animation: float 4s ease-in-out infinite; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TeenTalk Chat - Advanced Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-black: #05060f;
+      --bg-blue: #0b1231;
+      --bg-purple: #201044;
+      --neon-cyan: #1cf0ff;
+      --neon-purple: #c084ff;
+      --neon-pink: #ff61d8;
+      --text-main: #ecf2ff;
+      --text-muted: #a8b2d7;
+      --glass: rgba(255, 255, 255, 0.07);
+      --border: rgba(255, 255, 255, 0.18);
+      --danger: #ff657f;
+      --ok: #58ffad;
+      --warning: #ffd369;
+      --radius: 16px;
+      --shadow: 0 14px 34px rgba(0,0,0,0.35);
+      --cyan-glow: 0 0 22px rgba(28,240,255,.5);
+      --purple-glow: 0 0 22px rgba(192,132,255,.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at 8% 8%, #17225f 0, transparent 30%),
+        radial-gradient(circle at 92% 80%, #3f186f 0, transparent 33%),
+        linear-gradient(145deg, var(--bg-black), var(--bg-blue), var(--bg-purple));
+      overflow: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      filter: blur(58px);
+      opacity: .2;
+      z-index: -1;
+      animation: drift 14s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    body::before { top: -60px; left: -50px; background: var(--neon-cyan); }
+    body::after { bottom: -70px; right: -55px; background: var(--neon-purple); animation-delay: -6s; }
+
+    @keyframes drift {
+      0%,100% { transform: translate(0,0) scale(1); }
+      50% { transform: translate(45px, 25px) scale(1.16); }
+    }
+
+    .app { height: 100vh; overflow: auto; padding: 18px; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .glass {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .neon-title {
+      background: linear-gradient(120deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: var(--cyan-glow);
+      letter-spacing: .5px;
+    }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 12px;
+      cursor: pointer;
+      color: var(--text-main);
+      background: rgba(255,255,255,.1);
+      font-weight: 700;
+      font-size: .9rem;
+      padding: 10px 14px;
+      transition: .22s ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+    .btn.primary {
+      border-color: rgba(28,240,255,.65);
+      background: linear-gradient(120deg, rgba(28,240,255,.2), rgba(192,132,255,.24));
+      box-shadow: var(--cyan-glow);
+    }
+    .btn.secondary { border-color: rgba(192,132,255,.55); box-shadow: var(--purple-glow); }
+    .btn.danger { border-color: rgba(255,101,127,.65); background: rgba(255,101,127,.12); }
+    .btn.ghost { border-color: var(--border); }
+
+    .home {
+      min-height: calc(100vh - 36px);
+      display: grid;
+      place-items: center;
+    }
+
+    .home-card {
+      width: min(920px, 97vw);
+      text-align: center;
+      padding: clamp(24px, 4vw, 42px);
+    }
+
+    .home-card h1 { font-size: clamp(2.2rem, 8vw, 4.7rem); margin-bottom: 8px; }
+    .home-card p { color: var(--text-muted); }
+
+    .counter {
+      margin: 18px auto;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      color: var(--ok);
+      font-weight: 700;
+    }
+
+    .actions { margin: 15px 0 22px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .kpi { padding: 12px; text-align: left; background: rgba(255,255,255,.04); border-radius: 12px; border: 1px solid rgba(255,255,255,.08); }
+    .kpi strong { display: block; margin-bottom: 4px; color: var(--neon-cyan); }
+    .muted { color: var(--text-muted); }
+
+    .panel-page { max-width: 920px; margin: 0 auto; }
+    .panel-page .glass { padding: 20px; }
+    .title { text-align: center; margin: 8px 0 12px; font-size: clamp(1.7rem, 6vw, 2.5rem); }
+
+    .form-grid { width: min(470px, 95vw); margin: 12px auto 0; display: grid; gap: 10px; }
+
+    input, select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.24);
+      color: var(--text-main);
+      border-radius: 10px;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    input:focus, select:focus { border-color: var(--neon-cyan); box-shadow: var(--cyan-glow); }
+
+    .chat-page { height: calc(100vh - 36px); display: grid; grid-template-rows: auto 1fr; gap: 10px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 10px 12px;
+    }
+
+    .topbar-left, .topbar-right { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .chat-layout {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 250px 1fr 230px;
+      gap: 10px;
+    }
+
+    .sidebar, .chat-main, .meta { min-height: 0; padding: 12px; }
+    .small-title { color: var(--text-muted); font-size: .8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+
+    .room-list button {
+      width: 100%; text-align: left; margin-bottom: 7px;
+      border: 1px solid transparent; border-radius: 10px;
+      padding: 9px 10px; background: rgba(255,255,255,.05); color: var(--text-main); cursor: pointer;
+    }
+
+    .room-list button.active { border-color: rgba(28,240,255,.5); box-shadow: var(--cyan-glow); }
+
+    .users-search { margin-bottom: 8px; }
+
+    .users-list { max-height: calc(100% - 130px); overflow: auto; padding-right: 2px; }
+
+    .user {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,.04); border: 1px solid transparent;
+      border-radius: 10px; padding: 8px; margin-bottom: 7px; cursor: pointer;
+    }
+
+    .user:hover { border-color: rgba(192,132,255,.55); }
+    .dot { color: var(--ok); }
+
+    .typing { margin-top: 8px; font-size: .82rem; color: var(--warning); min-height: 18px; }
+
+    .pinned {
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,211,105,.45);
+      background: rgba(255,211,105,.1);
+      font-size: .86rem;
+    }
+
+    .messages {
+      height: calc(100% - 115px);
+      overflow-y: auto;
+      padding-right: 2px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .msg {
+      padding: 9px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.05);
+    }
+
+    .msg-head { display: flex; justify-content: space-between; font-size: .83rem; margin-bottom: 5px; gap: 8px; }
+    .msg-head strong { color: var(--neon-cyan); }
+
+    .tag { font-size: .68rem; border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 2px 6px; }
+
+    .msg-actions, .admin-tools { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+    .msg-actions button, .admin-tools button {
+      border-radius: 8px;
+      padding: 5px 8px;
+      border: 1px solid rgba(255,255,255,.22);
+      color: #edf2ff;
+      background: rgba(255,255,255,.08);
+      font-size: .72rem;
+      cursor: pointer;
+    }
+
+    .composer {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: auto auto 1fr auto;
+      gap: 6px;
+    }
+
+    .composer .btn { min-width: 44px; }
+
+    .meta-card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 9px;
+      margin-bottom: 8px;
+      font-size: .86rem;
+    }
+
+    .private-popup {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: min(360px, 90vw);
+      display: none;
+      z-index: 8;
+      padding: 10px;
+    }
+
+    .private-popup.active { display: block; }
+
+    .private-body { height: 170px; overflow: auto; display: grid; gap: 7px; margin: 8px 0; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.45);
+      border: 1px solid rgba(255,255,255,.25);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: .86rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: .25s ease;
+      z-index: 20;
+    }
+
+    .toast.show { opacity: 1; }
+
+    @media (max-width: 1020px) {
+      .chat-layout { grid-template-columns: 220px 1fr; }
+      .meta { display: none; }
+    }
+
+    @media (max-width: 820px) {
+      .chat-page { height: auto; }
+      .chat-layout { grid-template-columns: 1fr; }
+      .sidebar { max-height: 280px; overflow: auto; }
+      .chat-main { min-height: 62vh; }
+      .messages { height: calc(100% - 125px); }
+      .composer { grid-template-columns: auto 1fr auto; }
+      .composer #attachBtn { display: none; }
+    }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
+  <div class="app">
+    <main id="home" class="page active home">
+      <section class="glass home-card">
+        <h1 class="neon-title">TeenTalk Chat</h1>
+        <p>Dark + neon + modern chat UI demo with glowing glassmorphism and advanced interactive preview features.</p>
+        <div class="counter">● <span id="onlineCount">286</span> online users now</div>
+        <div class="actions">
+          <button class="btn primary" data-go="guest">Enter Chat as Guest</button>
+          <button class="btn secondary" data-go="login">Login</button>
+          <button class="btn secondary" data-go="signup">Sign Up</button>
+          <button class="btn ghost" data-go="rules">Rules</button>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi"><strong>Animated Background</strong><span class="muted">Smooth glowing gradients</span></div>
+          <div class="kpi"><strong>Private + Public Chat</strong><span class="muted">Popup private windows</span></div>
+          <div class="kpi"><strong>Admin Controls</strong><span class="muted">Kick / Ban / Delete message UI</span></div>
+          <div class="kpi"><strong>Fast Loading</strong><span class="muted">Single editable HTML file</span></div>
+        </div>
+      </section>
+    </main>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <section id="guest" class="page panel-page">
+      <h2 class="title neon-title">Guest Mode</h2>
+      <div class="glass">
+        <p class="muted" style="text-align:center;">No signup required. Choose nickname + favorite room and jump in.</p>
+        <div class="form-grid">
+          <input id="guestName" maxlength="18" placeholder="Nickname (e.g. NeonRider)" />
+          <select id="guestRoom">
+            <option value="General">General</option>
+            <option value="Gaming">Gaming</option>
+            <option value="Music">Music</option>
+            <option value="Study">Study</option>
+          </select>
+          <button class="btn primary" id="enterGuest">Enter Public Chat Room</button>
+          <button class="btn ghost" data-go="home">Back Home</button>
+        </div>
+      </div>
+    </section>
 
-        function App() {
-            const [page, setPage] = useState('home');
+    <section id="login" class="page panel-page">
+      <h2 class="title neon-title">Login</h2>
+      <div class="glass">
+        <div class="form-grid">
+          <input placeholder="Username" />
+          <input type="password" placeholder="Password" />
+          <input type="email" placeholder="Email" />
+          <label class="muted"><input type="checkbox" /> Remember me</label>
+          <button class="btn primary" data-go="chat">Login to Chat</button>
+          <button class="btn ghost" data-go="home">Back Home</button>
+        </div>
+      </div>
+    </section>
 
-            if (page === 'home') {
-                return (
-                    <div className="flex flex-col items-center justify-center min-h-screen p-6 relative">
-                        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600 rounded-full blur-[120px] opacity-20"></div>
-                        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-cyan-600 rounded-full blur-[120px] opacity-20"></div>
+    <section id="signup" class="page panel-page">
+      <h2 class="title neon-title">Sign Up</h2>
+      <div class="glass">
+        <div class="form-grid">
+          <input placeholder="Username" />
+          <input type="password" placeholder="Password" />
+          <input type="email" placeholder="Email" />
+          <label class="muted"><input type="checkbox" /> Remember me</label>
+          <button class="btn primary" data-go="chat">Create Account</button>
+          <button class="btn ghost" data-go="home">Back Home</button>
+        </div>
+      </div>
+    </section>
 
-                        <div className="glass p-12 max-w-2xl w-full text-center z-10">
-                            <h1 className="text-6xl font-extrabold neon-text mb-4 float">teenchat24.online</h1>
-                            <p className="text-gray-400 text-xl mb-10">Modern social chat for the next generation. Join the vibe.</p>
-                            
-                            <div className="flex flex-wrap gap-4 justify-center mb-12">
-                                <button onClick={() => setPage('chat')} className="btn-neon-purple px-8 py-3 rounded-lg font-bold uppercase tracking-wider">Start Chat</button>
-                                <button className="border border-white/20 px-8 py-3 rounded-lg font-bold hover:bg-white/10 transition">Guest Login</button>
-                            </div>
+    <section id="rules" class="page panel-page">
+      <h2 class="title neon-title">TeenTalk Rules</h2>
+      <div class="glass" style="padding:24px;">
+        <ul class="muted" style="max-width:560px; margin:0 auto; line-height:1.9;">
+          <li>No abuse or harassment.</li>
+          <li>No adult content.</li>
+          <li>Be respectful to everyone.</li>
+          <li>Age 13+ only.</li>
+        </ul>
+        <div class="actions" style="margin-top:14px;">
+          <button class="btn ghost" data-go="home">Back Home</button>
+        </div>
+      </div>
+    </section>
 
-                            <div className="grid grid-cols-3 gap-6">
-                                <div className="p-4 rounded-xl bg-white/5">
-                                    <div className="text-2xl font-bold text-cyan-400">1,240+</div>
-                                    <div className="text-xs text-gray-500 uppercase">Online</div>
-                                </div>
-                                <div className="p-4 rounded-xl bg-white/5">
-                                    <div className="text-2xl font-bold text-purple-400">Fast</div>
-                                    <div className="text-xs text-gray-500 uppercase">Socket.io</div>
-                                </div>
-                                <div className="p-4 rounded-xl bg-white/5">
-                                    <div className="text-2xl font-bold text-green-400">Secure</div>
-                                    <div className="text-xs text-gray-500 uppercase">Moderated</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                );
+    <section id="chat" class="page chat-page">
+      <header class="glass topbar">
+        <div class="topbar-left">
+          <button class="btn ghost" data-go="home">Exit</button>
+          <button class="btn ghost" data-go="rules">Rules</button>
+          <span class="tag">User: <strong id="currentUserLabel"></strong></span>
+        </div>
+        <div class="topbar-right">
+          <button class="btn ghost" id="clearChatBtn">Clear Demo Chat</button>
+          <button class="btn secondary" id="saveDraftBtn">Save Draft</button>
+        </div>
+      </header>
+
+      <div class="chat-layout">
+        <aside class="glass sidebar">
+          <p class="small-title">Rooms</p>
+          <div id="roomList" class="room-list"></div>
+          <p class="small-title" style="margin-top:10px;">Online Users</p>
+          <input id="searchUsers" class="users-search" placeholder="Search users..." />
+          <div id="usersList" class="users-list"></div>
+          <div class="typing" id="typingIndicator"></div>
+        </aside>
+
+        <main class="glass chat-main">
+          <div class="pinned" id="pinnedBar">📌 Pinned: Welcome to TeenTalk Chat. Keep it respectful and fun.</div>
+          <div id="messages" class="messages"></div>
+          <form id="chatForm" class="composer">
+            <button class="btn ghost" type="button" id="emojiBtn">😊</button>
+            <button class="btn ghost" type="button" id="attachBtn">📎</button>
+            <input id="chatInput" placeholder="Type a message..." autocomplete="off" />
+            <button class="btn primary" type="submit">Send</button>
+          </form>
+        </main>
+
+        <aside class="glass meta">
+          <p class="small-title">Live Stats</p>
+          <div class="meta-card"><strong id="roomStat">Room: General</strong><br /><span class="muted">Real-time demo counter + room switcher</span></div>
+          <div class="meta-card"><strong id="msgCountStat">Messages: 0</strong><br /><span class="muted">Includes replies and reactions</span></div>
+          <div class="meta-card"><strong>Quick Actions</strong><br /><span class="muted">Click a username for private chat popup.</span></div>
+        </aside>
+      </div>
+    </section>
+  </div>
+
+  <aside id="privatePopup" class="glass private-popup">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+      <strong id="privateTitle">Private chat</strong>
+      <button class="btn ghost" style="padding:5px 8px;" id="closePrivate">✕</button>
+    </div>
+    <div id="privateBody" class="private-body"></div>
+    <form id="privateForm" style="display:grid; grid-template-columns:1fr auto; gap:6px;">
+      <input id="privateInput" placeholder="Private message..." />
+      <button class="btn secondary" type="submit">Send</button>
+    </form>
+  </aside>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const pages = document.querySelectorAll('.page');
+    const goButtons = document.querySelectorAll('[data-go]');
+
+    const onlineCountEl = document.getElementById('onlineCount');
+    const roomListEl = document.getElementById('roomList');
+    const usersListEl = document.getElementById('usersList');
+    const searchUsersEl = document.getElementById('searchUsers');
+    const typingIndicatorEl = document.getElementById('typingIndicator');
+    const messagesEl = document.getElementById('messages');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const emojiBtn = document.getElementById('emojiBtn');
+    const attachBtn = document.getElementById('attachBtn');
+    const clearChatBtn = document.getElementById('clearChatBtn');
+    const saveDraftBtn = document.getElementById('saveDraftBtn');
+    const msgCountStat = document.getElementById('msgCountStat');
+    const roomStat = document.getElementById('roomStat');
+    const currentUserLabel = document.getElementById('currentUserLabel');
+
+    const guestNameEl = document.getElementById('guestName');
+    const guestRoomEl = document.getElementById('guestRoom');
+    const enterGuest = document.getElementById('enterGuest');
+
+    const privatePopup = document.getElementById('privatePopup');
+    const privateTitle = document.getElementById('privateTitle');
+    const privateBody = document.getElementById('privateBody');
+    const privateForm = document.getElementById('privateForm');
+    const privateInput = document.getElementById('privateInput');
+    const closePrivate = document.getElementById('closePrivate');
+    const toast = document.getElementById('toast');
+
+    const rooms = ['General', 'Gaming', 'Music', 'Study'];
+    const users = ['NovaKid', 'PixelRush', 'SkyByte', 'LunaVibe', 'ModZed', 'NeonBee', 'QuickFox'];
+
+    const roomMessages = {
+      General: [
+        { id: 1, user: 'NovaKid', text: 'This upgraded TeenTalk UI is 🔥', time: '4:20 PM' },
+        { id: 2, user: 'ModZed', text: 'Reminder: no abuse and keep chat friendly.', time: '4:21 PM', admin: true },
+        { id: 3, user: 'LunaVibe', text: 'Anyone got coding playlist links?', time: '4:22 PM' }
+      ],
+      Gaming: [
+        { id: 10, user: 'PixelRush', text: 'Squad up after homework?', time: '4:25 PM' }
+      ],
+      Music: [
+        { id: 20, user: 'NeonBee', text: 'Synthwave + rain sounds is perfect.', time: '4:28 PM' }
+      ],
+      Study: [
+        { id: 30, user: 'SkyByte', text: 'Pomodoro session starts in 5 min.', time: '4:30 PM' }
+      ]
+    };
+
+    let currentUser = `Guest_${Math.floor(Math.random() * 9000 + 1000)}`;
+    let currentRoom = 'General';
+    let privateTarget = '';
+    let messageId = 1000;
+    let typingTimeout;
+
+    function switchPage(id) {
+      pages.forEach(p => p.classList.toggle('active', p.id === id));
+      if (id === 'chat') {
+        currentUserLabel.textContent = currentUser;
+        renderRooms();
+        renderUsers();
+        renderMessages();
+        roomStat.textContent = `Room: ${currentRoom}`;
+        const savedDraft = localStorage.getItem('teentalk-draft');
+        if (savedDraft) chatInput.value = savedDraft;
+      }
+    }
+
+    goButtons.forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.go)));
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    function renderRooms() {
+      roomListEl.innerHTML = '';
+      rooms.forEach(room => {
+        const btn = document.createElement('button');
+        btn.textContent = `# ${room}`;
+        btn.className = room === currentRoom ? 'active' : '';
+        btn.addEventListener('click', () => {
+          currentRoom = room;
+          renderRooms();
+          renderMessages();
+          roomStat.textContent = `Room: ${currentRoom}`;
+          showToast(`Switched to #${room}`);
+        });
+        roomListEl.appendChild(btn);
+      });
+    }
+
+    function renderUsers() {
+      usersListEl.innerHTML = '';
+      const search = (searchUsersEl.value || '').trim().toLowerCase();
+      [currentUser, ...users].filter(name => name.toLowerCase().includes(search)).forEach(name => {
+        const row = document.createElement('div');
+        row.className = 'user';
+        row.innerHTML = `<span>${name}</span><span class="dot">●</span>`;
+        row.addEventListener('click', () => openPrivate(name));
+        usersListEl.appendChild(row);
+      });
+    }
+
+    function messageActions(node, msg) {
+      const tools = document.createElement('div');
+      tools.className = 'msg-actions';
+
+      const reactBtn = document.createElement('button');
+      reactBtn.textContent = 'React 👍';
+      reactBtn.addEventListener('click', () => {
+        msg.reactions = (msg.reactions || 0) + 1;
+        node.querySelector('[data-reactions]').textContent = `👍 ${msg.reactions}`;
+      });
+
+      const replyBtn = document.createElement('button');
+      replyBtn.textContent = 'Reply';
+      replyBtn.addEventListener('click', () => {
+        chatInput.value = `@${msg.user} `;
+        chatInput.focus();
+      });
+
+      const pinBtn = document.createElement('button');
+      pinBtn.textContent = 'Pin';
+      pinBtn.addEventListener('click', () => {
+        document.getElementById('pinnedBar').textContent = `📌 Pinned: ${msg.user} — ${msg.text}`;
+        showToast('Message pinned');
+      });
+
+      tools.append(reactBtn, replyBtn, pinBtn);
+      node.appendChild(tools);
+
+      if (msg.admin || msg.user === 'ModZed') {
+        const adminTools = document.createElement('div');
+        adminTools.className = 'admin-tools';
+        ['Kick user', 'Ban user', 'Delete message'].forEach(action => {
+          const b = document.createElement('button');
+          b.textContent = action;
+          b.addEventListener('click', () => {
+            if (action === 'Delete message') {
+              node.remove();
+              showToast('Message removed');
+              updateStats();
+            } else {
+              showToast(`${action} → ${msg.user}`);
             }
+          });
+          adminTools.appendChild(b);
+        });
+        node.appendChild(adminTools);
+      }
+    }
 
-            return (
-                <div className="flex h-screen p-4 gap-4 overflow-hidden">
-                    {/* Sidebar */}
-                    <div className="glass w-64 flex flex-col p-4">
-                        <h2 className="text-xl font-bold mb-8 neon-text">TEENCHAT24</h2>
-                        <div className="flex-1 space-y-2">
-                            {['General', 'Gaming', 'Music', 'Vibe'].map(r => (
-                                <div key={r} className={`p-3 rounded-lg cursor-pointer ${r === 'General' ? 'bg-white/10' : 'hover:bg-white/5'}`}>
-                                    # {r}
-                                </div>
-                            ))}
-                        </div>
-                        <div className="glass p-3 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500"></div>
-                            <div>
-                                <div className="text-sm font-bold">PreviewUser</div>
-                                <div className="text-[10px] text-green-400">● Online</div>
-                            </div>
-                        </div>
-                    </div>
+    function renderMessageNode(msg) {
+      const item = document.createElement('article');
+      item.className = 'msg';
+      item.innerHTML = `
+        <div class="msg-head">
+          <span><strong>${msg.user}</strong> ${msg.user === currentUser ? '<span class="tag">you</span>' : ''}</span>
+          <span class="muted">${msg.time}</span>
+        </div>
+        <p>${msg.text}</p>
+        <div class="muted" data-reactions>👍 ${msg.reactions || 0}</div>
+      `;
+      messageActions(item, msg);
+      return item;
+    }
 
-                    {/* Chat Area */}
-                    <div className="glass flex-1 flex flex-col">
-                        <div className="p-4 border-b border-white/10 flex justify-between items-center">
-                            <h3 className="font-bold"># General</h3>
-                            <button onClick={() => setPage('home')} className="text-xs text-gray-400 hover:text-white">Exit</button>
-                        </div>
-                        <div className="flex-1 p-6 space-y-6 overflow-y-auto">
-                            <div className="flex gap-4">
-                                <div className="w-10 h-10 rounded-lg bg-cyan-900 border border-cyan-500/30 flex items-center justify-center">A</div>
-                                <div>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="font-bold text-cyan-400">Alex</span>
-                                        <span className="text-[10px] text-gray-500">4:20 PM</span>
-                                    </div>
-                                    <p className="text-gray-300">Yo, this new neon design is fire! 🔥</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center">S</div>
-                                <div>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="font-bold text-gray-400">System</span>
-                                        <span className="text-[10px] text-gray-500">4:21 PM</span>
-                                    </div>
-                                    <p className="text-gray-500 italic">User "NeonKiwi" joined the chat.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="p-4">
-                            <div className="glass bg-white/10 p-2 flex gap-3 items-center">
-                                <button className="w-10 h-10 hover:bg-white/10 rounded-lg">+</button>
-                                <input placeholder="Message #General..." className="flex-1 bg-transparent border-none outline-none" />
-                                <button className="px-4 py-2 bg-purple-600 rounded-lg font-bold">Send</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
+    function renderMessages() {
+      messagesEl.innerHTML = '';
+      roomMessages[currentRoom].forEach(msg => messagesEl.appendChild(renderMessageNode(msg)));
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      updateStats();
+    }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+    function updateStats() {
+      msgCountStat.textContent = `Messages: ${messagesEl.querySelectorAll('.msg').length}`;
+    }
+
+    function postMessage(text) {
+      const msg = {
+        id: messageId++,
+        user: currentUser,
+        text,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        reactions: 0
+      };
+      roomMessages[currentRoom].push(msg);
+      messagesEl.appendChild(renderMessageNode(msg));
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      updateStats();
+    }
+
+    function fakeReply() {
+      const botPool = ['NovaKid', 'LunaVibe', 'SkyByte'];
+      const lines = ['That glow effect is so clean.', 'Wanna join private chat?', 'I switched to #Music too!', 'This room is vibing ✨'];
+      const msg = {
+        id: messageId++,
+        user: botPool[Math.floor(Math.random() * botPool.length)],
+        text: lines[Math.floor(Math.random() * lines.length)],
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        reactions: 0
+      };
+      roomMessages[currentRoom].push(msg);
+      messagesEl.appendChild(renderMessageNode(msg));
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      updateStats();
+    }
+
+    chatForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text) return;
+      postMessage(text);
+      chatInput.value = '';
+      localStorage.removeItem('teentalk-draft');
+      setTimeout(fakeReply, 600 + Math.random() * 900);
+    });
+
+    chatInput.addEventListener('input', () => {
+      typingIndicatorEl.textContent = `${currentUser} is typing...`;
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => typingIndicatorEl.textContent = '', 900);
+    });
+
+    emojiBtn.addEventListener('click', () => { chatInput.value += ' 😊'; chatInput.focus(); });
+    attachBtn.addEventListener('click', () => showToast('Attachment UI preview (demo only)'));
+
+    clearChatBtn.addEventListener('click', () => {
+      roomMessages[currentRoom] = [];
+      renderMessages();
+      showToast('Current room messages cleared');
+    });
+
+    saveDraftBtn.addEventListener('click', () => {
+      localStorage.setItem('teentalk-draft', chatInput.value.trim());
+      showToast('Draft saved locally');
+    });
+
+    searchUsersEl.addEventListener('input', renderUsers);
+
+    function openPrivate(name) {
+      if (name === currentUser) return;
+      privateTarget = name;
+      privateTitle.textContent = `Private: ${name}`;
+      privateBody.innerHTML = `
+        <article class="msg"><div class="msg-head"><strong>${name}</strong><span class="muted">now</span></div><p>Hey ${currentUser}, welcome to private chat 👋</p></article>
+      `;
+      privatePopup.classList.add('active');
+    }
+
+    privateForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const text = privateInput.value.trim();
+      if (!text || !privateTarget) return;
+      const me = document.createElement('article');
+      me.className = 'msg';
+      me.innerHTML = `<div class="msg-head"><strong>${currentUser}</strong><span class="muted">now</span></div><p>${text}</p>`;
+      privateBody.appendChild(me);
+      privateBody.scrollTop = privateBody.scrollHeight;
+      privateInput.value = '';
+    });
+
+    closePrivate.addEventListener('click', () => privatePopup.classList.remove('active'));
+
+    enterGuest.addEventListener('click', () => {
+      currentUser = guestNameEl.value.trim() || `Guest_${Math.floor(Math.random() * 9000 + 1000)}`;
+      currentRoom = guestRoomEl.value;
+      switchPage('chat');
+    });
+
+    setInterval(() => {
+      onlineCountEl.textContent = 260 + Math.floor(Math.random() * 55);
+    }, 3000);
+  </script>
 </body>
 </html>
