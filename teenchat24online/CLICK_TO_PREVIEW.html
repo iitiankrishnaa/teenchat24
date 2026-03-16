@@ -110,6 +110,11 @@
 
     .composer { margin-top: 8px; display: grid; grid-template-columns: auto auto 1fr auto; gap: 6px; }
 
+
+    .live-controls { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .live-preview { border: 1px solid var(--line); border-radius: 10px; background: #0f1422; padding: 8px; margin-bottom: 8px; }
+    .live-preview video { width: 100%; max-height: 250px; border-radius: 8px; background: #0a0f1a; }
+
     /* WhatsApp-like DM */
     .dm-layout { display: grid; grid-template-columns: 210px 1fr; gap: 8px; min-height: 430px; }
     .dm-contacts { border: 1px solid var(--line); border-radius: 12px; background: #1d2231; padding: 8px; overflow: auto; }
@@ -241,6 +246,8 @@
         <div class="top-right">
           <button class="btn" id="groupAudioBtn">🔊 Group Audio</button>
           <button class="btn" id="groupVideoBtn">📹 Group Video</button>
+          <button class="btn" id="startLiveBtn">🔴 Start Live</button>
+          <button class="btn" id="stopLiveBtn">⏹ Stop Live</button>
           <button class="btn" id="settingsBtn">Settings</button>
           <button class="btn danger" id="clearRoomBtn">Clear Room</button>
         </div>
@@ -266,6 +273,13 @@
 
           <section id="publicPanel" class="panel active">
             <div class="pinned" id="pinnedBar">📌 Pinned: Welcome to TeenTalk Chat. Share good vibes only.</div>
+            <div class="live-preview" id="livePreviewBox">
+              <div class="live-controls">
+                <button class="btn" id="joinLiveBtn">▶ Join Live</button>
+                <span id="liveStatusText" class="muted" style="font-size:.8rem;">No live stream in this room</span>
+              </div>
+              <video id="liveVideo" autoplay playsinline muted></video>
+            </div>
             <div id="messages" class="messages"></div>
             <form id="chatForm" class="composer">
               <button class="btn" type="button" id="emojiBtn">😊</button>
@@ -421,6 +435,11 @@
 
     const groupAudioBtn = document.getElementById('groupAudioBtn');
     const groupVideoBtn = document.getElementById('groupVideoBtn');
+    const startLiveBtn = document.getElementById('startLiveBtn');
+    const stopLiveBtn = document.getElementById('stopLiveBtn');
+    const joinLiveBtn = document.getElementById('joinLiveBtn');
+    const liveStatusText = document.getElementById('liveStatusText');
+    const liveVideo = document.getElementById('liveVideo');
     const settingsBtn = document.getElementById('settingsBtn');
     const editProfileBtn = document.getElementById('editProfileBtn');
     const clearRoomBtn = document.getElementById('clearRoomBtn');
@@ -472,6 +491,9 @@
     const profile = { about: "Hey there! I'm using TeenTalk.", photoUrl: '' };
     const dmThreads = {};
     const blockedContacts = new Set();
+    let localLiveStream = null;
+    let activeLive = null; // { hostSocketId, hostUsername, startedAt }
+    const livePeers = new Map(); // socketId -> RTCPeerConnection
 
     function notify(msg) {
       if (!settings.notifications) return;
@@ -568,6 +590,71 @@
         refreshOnlineCount();
       });
 
+      socket.on('live-started', ({ room, hostSocketId, hostUsername }) => {
+        if (room !== currentRoom) return;
+        activeLive = { room, hostSocketId, hostUsername };
+        liveStatusText.textContent = `${hostUsername} is live now`;
+        liveVideo.muted = hostSocketId === socket.id;
+        notify(`${hostUsername} started live stream`);
+      });
+
+      socket.on('live-stopped', ({ room, hostSocketId }) => {
+        if (room !== currentRoom) return;
+        if (activeLive && activeLive.hostSocketId === hostSocketId) activeLive = null;
+        liveStatusText.textContent = 'No live stream in this room';
+        if (!localLiveStream) {
+          liveVideo.srcObject = null;
+        }
+        notify('Live stream ended');
+      });
+
+      socket.on('live-stream-status', (stream) => {
+        activeLive = stream;
+        liveStatusText.textContent = stream ? `${stream.hostUsername} is live now` : 'No live stream in this room';
+      });
+
+      socket.on('live-offer', async ({ fromSocketId, offer, room }) => {
+        if (room !== currentRoom) return;
+        if (fromSocketId !== activeLive?.hostSocketId) return;
+        try {
+          const pc = createPeer(fromSocketId, false);
+          await pc.setRemoteDescription(new RTCSessionDescription(offer));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          socket.emit('live-answer', { targetSocketId: fromSocketId, answer });
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      socket.on('live-offer-request', async ({ fromSocketId, room }) => {
+        if (!activeLive || activeLive.hostSocketId !== socket.id || room !== currentRoom) return;
+        const pc = createPeer(fromSocketId, true);
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit('live-offer', { targetSocketId: fromSocketId, offer, room: currentRoom });
+      });
+
+      socket.on('live-answer', async ({ fromSocketId, answer }) => {
+        const pc = livePeers.get(fromSocketId);
+        if (!pc) return;
+        try {
+          await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      socket.on('live-ice-candidate', async ({ fromSocketId, candidate }) => {
+        const pc = livePeers.get(fromSocketId);
+        if (!pc) return;
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
       socket.on('receive-message', msg => {
         if (msg?.room !== currentRoom) return;
         appendPublicMessage(msg.username || msg.user || 'User', msg.text || '');
@@ -585,6 +672,76 @@
       });
     }
 
+
+
+    function createPeer(targetSocketId, isHost) {
+      const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+      livePeers.set(targetSocketId, pc);
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('live-ice-candidate', { targetSocketId, candidate: event.candidate });
+        }
+      };
+
+      if (isHost && localLiveStream) {
+        localLiveStream.getTracks().forEach(track => pc.addTrack(track, localLiveStream));
+      } else {
+        pc.ontrack = (event) => {
+          liveVideo.srcObject = event.streams[0];
+          liveVideo.muted = false;
+        };
+      }
+      return pc;
+    }
+
+    async function startLiveStream() {
+      if (!socket?.connected) return notify('Realtime backend not connected');
+      try {
+        if (localLiveStream) {
+          notify('Live already started');
+          return;
+        }
+        localLiveStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        liveVideo.srcObject = localLiveStream;
+        liveVideo.muted = true;
+        activeLive = { room: currentRoom, hostSocketId: socket.id, hostUsername: currentUser };
+        socket.emit('start-live', { room: currentRoom, username: currentUser });
+      } catch (e) {
+        notify('Camera/Mic permission denied');
+      }
+    }
+
+    function stopLiveStream() {
+      if (localLiveStream) {
+        localLiveStream.getTracks().forEach(t => t.stop());
+        localLiveStream = null;
+      }
+      livePeers.forEach(pc => pc.close());
+      livePeers.clear();
+      socket?.emit('stop-live', { room: currentRoom });
+      liveVideo.srcObject = null;
+      activeLive = null;
+      liveStatusText.textContent = 'No live stream in this room';
+    }
+
+    async function joinLiveStream() {
+      if (!socket?.connected) return notify('Realtime backend not connected');
+      if (!activeLive) {
+        socket.emit('request-live-stream', { room: currentRoom });
+        return notify('No active live stream found');
+      }
+      if (activeLive.hostSocketId === socket.id) return notify('You are the host');
+      try {
+        const pc = createPeer(activeLive.hostSocketId, false);
+        const offerRequest = { targetSocketId: activeLive.hostSocketId, room: currentRoom, request: true };
+        socket.emit('live-offer-request', offerRequest);
+        notify('Joining live stream...');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     function switchPage(id) {
       pages.forEach(p => p.classList.toggle('active', p.id === id));
       if (id === 'chat') {
@@ -597,6 +754,7 @@
         roomStat.textContent = `Room: ${currentRoom}`;
         if (socket?.connected) {
           socket.emit('join', { uid: currentUser, username: currentUser, room: currentRoom });
+          socket.emit('request-live-stream', { room: currentRoom });
         }
       }
     }
@@ -618,6 +776,7 @@
           renderRooms();
           if (socket?.connected) {
             socket.emit('join', { uid: currentUser, username: currentUser, room: currentRoom });
+            socket.emit('request-live-stream', { room: currentRoom });
           }
           notify(`Switched to #${room}`);
         });
@@ -890,6 +1049,10 @@
       notify('DM file queued (demo)');
     };
 
+    startLiveBtn.onclick = () => startLiveStream();
+    stopLiveBtn.onclick = () => stopLiveStream();
+    joinLiveBtn.onclick = () => joinLiveStream();
+
     voiceCallBtn.onclick = () => openCall('audio', 'dm');
     videoCallBtn.onclick = () => openCall('video', 'dm');
     groupAudioBtn.onclick = () => openCall('audio', 'group');
@@ -961,7 +1124,10 @@
       currentRoom = guestRoomEl.value;
       if (!rooms.includes(currentRoom)) rooms.push(currentRoom);
       switchPage('chat');
-      if (socket?.connected) socket.emit('join', { uid: currentUser, username: currentUser, room: currentRoom });
+      if (socket?.connected) {
+        socket.emit('join', { uid: currentUser, username: currentUser, room: currentRoom });
+        socket.emit('request-live-stream', { room: currentRoom });
+      }
     };
 
     refreshOnlineCount();
