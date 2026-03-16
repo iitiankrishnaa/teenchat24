@@ -9,14 +9,15 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '55mb' }));
 
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: process.env.FRONTEND_URL || "*",
         methods: ["GET", "POST"]
-    }
+    },
+    maxHttpBufferSize: 55 * 1024 * 1024
 });
 
 // Firebase Admin initialization
@@ -35,11 +36,12 @@ try {
     console.warn("Ensure serviceAccountKey.json is present OR FIREBASE_SERVICE_ACCOUNT env var is set.");
 }
 
-const db = admin.firestore?.();
+const db = admin.apps.length ? admin.firestore() : null;
 
 // State tracking
 const onlineUsers = new Map(); // socket.id -> { uid, username, room }
 const activeRooms = new Set(['General', 'Teens', 'Music', 'Gaming']);
+const liveStreams = new Map(); // room -> { hostSocketId, hostUsername, startedAt }
 
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
@@ -111,10 +113,78 @@ io.on('connection', (socket) => {
         socket.to(room).emit('user-typing', { username, isTyping });
     });
 
+    // Live stream controls
+    socket.on('start-live', ({ room, username }) => {
+        if (!room || !username) return;
+        liveStreams.set(room, {
+            hostSocketId: socket.id,
+            hostUsername: username,
+            startedAt: Date.now()
+        });
+        io.to(room).emit('live-started', { room, hostSocketId: socket.id, hostUsername: username });
+    });
+
+    socket.on('stop-live', ({ room }) => {
+        if (!room) return;
+        const stream = liveStreams.get(room);
+        if (stream && stream.hostSocketId === socket.id) {
+            liveStreams.delete(room);
+            io.to(room).emit('live-stopped', { room, hostSocketId: socket.id });
+        }
+    });
+
+    // WebRTC signaling relay
+    socket.on('live-offer', ({ targetSocketId, offer, room }) => {
+        if (!targetSocketId || !offer) return;
+        io.to(targetSocketId).emit('live-offer', {
+            fromSocketId: socket.id,
+            offer,
+            room
+        });
+    });
+
+
+    socket.on('live-offer-request', ({ targetSocketId, room }) => {
+        if (!targetSocketId) return;
+        io.to(targetSocketId).emit('live-offer-request', {
+            fromSocketId: socket.id,
+            room
+        });
+    });
+
+    socket.on('live-answer', ({ targetSocketId, answer }) => {
+        if (!targetSocketId || !answer) return;
+        io.to(targetSocketId).emit('live-answer', {
+            fromSocketId: socket.id,
+            answer
+        });
+    });
+
+    socket.on('live-ice-candidate', ({ targetSocketId, candidate }) => {
+        if (!targetSocketId || !candidate) return;
+        io.to(targetSocketId).emit('live-ice-candidate', {
+            fromSocketId: socket.id,
+            candidate
+        });
+    });
+
+    socket.on('request-live-stream', ({ room }) => {
+        if (!room) return;
+        const stream = liveStreams.get(room) || null;
+        socket.emit('live-stream-status', stream);
+    });
+
     socket.on('disconnect', () => {
         const user = onlineUsers.get(socket.id);
         if (user) {
             const { room, username } = user;
+
+            const live = liveStreams.get(room);
+            if (live && live.hostSocketId === socket.id) {
+                liveStreams.delete(room);
+                io.to(room).emit('live-stopped', { room, hostSocketId: socket.id });
+            }
+
             onlineUsers.delete(socket.id);
             socket.to(room).emit('user-left', { username, id: socket.id });
             updateRoomUsers(room);
@@ -123,9 +193,9 @@ io.on('connection', (socket) => {
 });
 
 function updateRoomUsers(room) {
-    const usersInRoom = Array.from(onlineUsers.values())
-        .filter(u => u.room === room)
-        .map(u => ({ username: u.username, uid: u.uid }));
+    const usersInRoom = Array.from(onlineUsers.entries())
+        .filter(([, u]) => u.room === room)
+        .map(([socketId, u]) => ({ username: u.username, uid: u.uid, socketId }));
     io.to(room).emit('room-users', usersInRoom);
 }
 

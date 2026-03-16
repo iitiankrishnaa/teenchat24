@@ -1,160 +1,1209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>teenchat24.online - Preview</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-dark: #0f0c29;
-            --neon-purple: #bc13fe;
-            --neon-blue: #00d2ff;
-        }
-        body {
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            color: white;
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-        }
-        .neon-text {
-            background: linear-gradient(to right, #00d2ff, #bc13fe);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .btn-neon-purple {
-            background: var(--neon-purple);
-            box-shadow: 0 0 15px rgba(188, 19, 254, 0.4);
-            transition: 0.3s;
-        }
-        .btn-neon-purple:hover {
-            box-shadow: 0 0 25px rgba(188, 19, 254, 0.7);
-            transform: translateY(-2px);
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        .float { animation: float 4s ease-in-out infinite; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TeenTalk Chat - Insta + DM Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0f18;
+      --panel: #121827;
+      --soft: #1b2236;
+      --line: rgba(184, 198, 255, 0.16);
+      --text: #f3f6ff;
+      --muted: #9aa6c9;
+      --ok: #4dd08d;
+      --danger: #ff5d7f;
+      --grad: linear-gradient(135deg, #8b5cf6, #4f46e5, #06b6d4);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 12px 30px rgba(4, 10, 24, 0.45);
+      --shadow-focus: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(79,70,229,.24), transparent 30%),
+        radial-gradient(circle at 88% 18%, rgba(6,182,212,.14), transparent 30%),
+        linear-gradient(160deg, #0b0f18 0%, #0e1422 46%, #121827 100%);
+      overflow: hidden;
+      letter-spacing: .01em;
+    }
+    .app { height: 100vh; overflow: auto; padding: 16px; position: relative; }
+    .page {
+      opacity: 0;
+      transform: translateY(10px) scale(.995);
+      transition: opacity .35s ease, transform .35s ease;
+      pointer-events: none;
+      height: 0;
+      overflow: hidden;
+      visibility: hidden;
+    }
+    .page.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+      height: auto;
+      overflow: visible;
+      visibility: visible;
+    }
+    .glass { background: rgba(18, 24, 39, .88); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); }
+    .logo { font-size: clamp(2rem, 7vw, 4rem); font-weight: 800; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -.02em; }
+    .muted { color: var(--muted); }
+    .btn { border: 1px solid transparent; border-radius: var(--radius-md); background: #27314a; color: var(--text); padding: 10px 14px; font-weight: 700; font-size: .9rem; cursor: pointer; transition: all .2s ease; }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+    .btn.primary { background: var(--grad); color: #f7fbff; box-shadow: 0 6px 16px rgba(79,70,229,.35); }
+    .btn.ghost { background: rgba(255,255,255,.02); border-color: var(--line); }
+    .btn.danger { border-color: rgba(255,93,127,.5); background: rgba(255,93,127,.12); }
+    input, select { width: 100%; background: #1a2236; color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px; transition: border-color .2s ease, box-shadow .2s ease; }
+    input:focus, select:focus { outline: none; border-color: rgba(79,70,229,.75); box-shadow: var(--shadow-focus); }
+
+    .home { min-height: calc(100vh - 32px); display: grid; place-items: center; }
+    .home-card { width: min(940px, 98vw); text-align: center; padding: clamp(24px, 4vw, 40px); }
+    .counter { margin: 12px auto; display: inline-flex; gap: 8px; color: var(--ok); font-weight: 700; }
+    .actions { margin: 16px 0 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .feature-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); text-align: left; }
+    .feature-card { padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #1a2236; }
+
+    .panel-page { max-width: 900px; margin: 0 auto; }
+    .panel-page .glass { padding: 18px; }
+    .title { text-align: center; margin: 10px 0 12px; font-size: clamp(1.7rem, 6vw, 2.4rem); }
+    .form-grid { width: min(470px, 96vw); margin: 0 auto; display: grid; gap: 10px; }
+
+    .chat-page { height: calc(100vh - 32px); display: grid; grid-template-rows: auto auto 1fr; gap: 10px; }
+    .topbar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 12px; backdrop-filter: blur(8px); }
+    .top-left, .top-right { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; font-size: .75rem; }
+
+    .stories { padding: 12px; display: flex; gap: 12px; overflow: auto; background: rgba(255,255,255,.015); }
+    .story { min-width: 84px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+    .ring { width: 56px; height: 56px; margin: 0 auto 4px; border-radius: 50%; padding: 2px; background: var(--grad); }
+    .ring-inner { width: 100%; height: 100%; border-radius: 50%; display: grid; place-items: center; background: #11131c; color: white; font-weight: 700; }
+
+    .chat-layout { min-height: 0; display: grid; grid-template-columns: 250px 1fr 250px; gap: 10px; }
+    .side, .main, .meta { min-height: 0; padding: 10px; }
+    .small-title { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 7px; }
+    .room-list button { width: 100%; text-align: left; margin-bottom: 6px; padding: 9px; border-radius: 10px; border: 1px solid transparent; background: #202942; color: var(--text); cursor: pointer; }
+    .room-list button.active { border-color: #4f46e5; box-shadow: inset 0 0 0 1px rgba(79,70,229,.35); }
+    .users { max-height: 170px; overflow: auto; }
+    .user { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding: 8px; border-radius: 10px; border: 1px solid transparent; background: #23283a; cursor: pointer; }
+    .user:hover { border-color: #8a5cff; }
+    .typing { min-height: 18px; color: #feda75; font-size: .8rem; margin-top: 6px; }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 8px; }
+    .tab-btn { flex: 1; border: 1px solid var(--line); background: #252a3b; color: var(--text); border-radius: 10px; padding: 7px; cursor: pointer; font-weight: 700; font-size: .8rem; }
+    .tab-btn.active { border-color: #25d366; box-shadow: inset 0 0 0 1px #25d366; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .pinned { padding: 8px 10px; border: 1px solid rgba(254,218,117,.45); background: rgba(254,218,117,.12); border-radius: 10px; margin-bottom: 8px; font-size: .85rem; }
+    .messages { height: calc(100% - 135px); overflow: auto; display: grid; gap: 8px; padding-right: 2px; }
+    .msg { border: 1px solid var(--line); border-radius: 10px; background: #1a2338; padding: 10px; }
+
+    .file-card { margin-top: 6px; padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: #22293d; }
+    .file-meta { font-size: .78rem; color: var(--muted); }
+    .progress-wrap { margin-top: 7px; width: 100%; height: 7px; border-radius: 99px; background: rgba(255,255,255,.12); overflow: hidden; }
+    .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #25d366, #4f5bd5); transition: width .2s ease; }
+    .msg-head { display: flex; justify-content: space-between; gap: 8px; font-size: .82rem; margin-bottom: 4px; }
+    .msg-head strong { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .msg-tools, .admin-tools { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+    .msg-tools button, .admin-tools button { border-radius: 8px; border: 1px solid var(--line); background: #2a3044; color: var(--text); font-size: .72rem; padding: 5px 7px; cursor: pointer; }
+
+    .composer { margin-top: 8px; display: grid; grid-template-columns: auto auto 1fr auto; gap: 6px; }
+
+
+    .live-controls { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .live-preview { border: 1px solid var(--line); border-radius: 10px; background: #0f1422; padding: 8px; margin-bottom: 8px; }
+    .live-preview video { width: 100%; max-height: 250px; border-radius: 8px; background: #0a0f1a; }
+
+    /* WhatsApp-like DM */
+    .dm-layout { display: grid; grid-template-columns: 210px 1fr; gap: 8px; min-height: 430px; }
+    .dm-contacts { border: 1px solid var(--line); border-radius: 12px; background: #1d2231; padding: 8px; overflow: auto; }
+    .contact { border: 1px solid transparent; border-radius: 10px; background: #252b3e; padding: 8px; margin-bottom: 6px; cursor: pointer; }
+    .contact.active { border-color: #25d366; }
+    .contact-top { display: flex; justify-content: space-between; font-size: .78rem; margin-bottom: 3px; }
+    .badge { background: #25d366; color: #0f1014; border-radius: 999px; font-size: .68rem; padding: 1px 6px; font-weight: 700; }
+    .dm-main { border: 1px solid var(--line); border-radius: 12px; background: #111b21; padding: 8px; display: grid; grid-template-rows: auto 1fr auto; gap: 8px; }
+    .dm-header { display: flex; justify-content: space-between; align-items: center; background: #202c33; border: 1px solid rgba(255,255,255,.08); padding: 8px; border-radius: 10px; }
+    .dm-status { color: #b5c8d4; font-size: .76rem; }
+    .dm-actions { display: flex; gap: 6px; }
+    .dm-btn { border: 1px solid rgba(255,255,255,.18); background: #2a3942; color: white; border-radius: 8px; padding: 5px 8px; cursor: pointer; font-size: .75rem; }
+    .dm-messages { overflow: auto; display: grid; gap: 7px; padding: 2px; }
+    .bubble { max-width: 78%; padding: 8px 9px; border-radius: 10px; font-size: .85rem; }
+    .bubble.in { background: #202c33; justify-self: start; }
+    .bubble.out { background: #005c4b; justify-self: end; }
+    .bubble-meta { display: block; font-size: .68rem; margin-top: 3px; opacity: .8; text-align: right; }
+    .dm-compose { display: grid; grid-template-columns: auto 1fr auto auto; gap: 6px; }
+
+    .meta-card { border: 1px solid var(--line); border-radius: 10px; background: #1a2236; padding: 10px; margin-bottom: 9px; font-size: .84rem; }
+
+    .profile-chip { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.2);
+      background: #2a3044;
+      object-fit: cover;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: #fff;
+      overflow: hidden;
+    }
+    .avatar.lg { width: 46px; height: 46px; }
+    .profile-reel { margin-top: 8px; border: 1px solid var(--line); border-radius: 10px; background: #161c2c; padding: 6px; }
+    .profile-reel video { width: 100%; max-height: 170px; border-radius: 8px; background: #0d1220; }
+    .profile-reel .muted { font-size: .74rem; margin-top: 4px; }
+
+
+    .private-popup, .settings-popup { position: fixed; right: 16px; bottom: 16px; width: min(370px, 92vw); padding: 10px; display: none; z-index: 20; }
+    .private-popup.active, .settings-popup.active { display: block; }
+    .private-body { height: 160px; overflow: auto; display: grid; gap: 6px; margin: 8px 0; }
+
+    .toast { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); border: 1px solid var(--line); border-radius: 10px; padding: 8px 11px; background: rgba(17,19,28,.95); opacity: 0; pointer-events: none; transition: .2s; z-index: 30; }
+    .toast.show { opacity: 1; }
+
+    .call-popup { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, 92vw); padding: 12px; display: none; z-index: 25; }
+    .call-popup.active { display: block; }
+    .call-members { margin: 10px 0; max-height: 190px; overflow: auto; display: grid; gap: 6px; }
+    .call-member { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:7px 8px; border:1px solid var(--line); border-radius:10px; background:#23283a; }
+    .call-status { color: var(--ok); font-size: .78rem; }
+
+    @media (max-width: 1100px) { .chat-layout { grid-template-columns: 240px 1fr; } .meta { display: none; } }
+    @media (max-width: 860px) {
+      .chat-page { height: auto; }
+      .chat-layout { grid-template-columns: 1fr; }
+      .side { max-height: 280px; overflow: auto; }
+      .main { min-height: 68vh; }
+      .composer { grid-template-columns: auto 1fr auto; }
+      #attachBtn { display: none; }
+      .dm-layout { grid-template-columns: 1fr; }
+      .dm-contacts { max-height: 150px; }
+    }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
+  <div class="app">
+    <main id="home" class="page active home">
+      <section class="glass home-card">
+        <h1 class="logo">TeenTalk Chat</h1>
+        <p class="muted">Instagram-inspired + WhatsApp-style one-to-one chat preview.</p>
+        <div class="counter">● <span id="onlineCount">634</span> users online</div>
+        <div class="actions">
+          <button class="btn primary" data-go="guest">Enter Chat as Guest</button>
+          <button class="btn" data-go="login">Login</button>
+          <button class="btn" data-go="signup">Sign Up</button>
+          <button class="btn ghost" data-go="rules">Rules</button>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card"><strong>Public Rooms</strong><div class="muted">Group chat like before</div></div>
+          <div class="feature-card"><strong>1-to-1 DM</strong><div class="muted">WhatsApp-like contact list & bubbles</div></div>
+          <div class="feature-card"><strong>Calls + Last Seen</strong><div class="muted">Voice/video UI actions</div></div>
+          <div class="feature-card"><strong>Status Ticks</strong><div class="muted">Single/double/read indicators</div></div>
+        </div>
+      </section>
+    </main>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <section id="guest" class="page panel-page">
+      <h2 class="title logo">Guest Mode</h2>
+      <div class="glass"><div class="form-grid">
+        <input id="guestName" placeholder="Nickname" maxlength="18" />
+        <select id="guestRoom"><option>General</option><option>Gaming</option><option>Music</option><option>Study</option><option>Confessions</option></select>
+        <button id="enterGuest" class="btn primary">Enter Public Chat Room</button>
+        <button class="btn ghost" data-go="home">Back Home</button>
+      </div></div>
+    </section>
 
-        function App() {
-            const [page, setPage] = useState('home');
+    <section id="login" class="page panel-page">
+      <h2 class="title logo">Login</h2>
+      <div class="glass"><div class="form-grid">
+        <input placeholder="Username" /><input type="password" placeholder="Password" /><input type="email" placeholder="Email" />
+        <label class="muted"><input type="checkbox" /> Remember me</label>
+        <button class="btn primary" data-go="chat">Login to Chat</button><button class="btn ghost" data-go="home">Back Home</button>
+      </div></div>
+    </section>
 
-            if (page === 'home') {
-                return (
-                    <div className="flex flex-col items-center justify-center min-h-screen p-6 relative">
-                        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600 rounded-full blur-[120px] opacity-20"></div>
-                        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-cyan-600 rounded-full blur-[120px] opacity-20"></div>
+    <section id="signup" class="page panel-page">
+      <h2 class="title logo">Sign Up</h2>
+      <div class="glass"><div class="form-grid">
+        <input placeholder="Username" /><input type="password" placeholder="Password" /><input type="email" placeholder="Email" />
+        <label class="muted"><input type="checkbox" /> Remember me</label>
+        <button class="btn primary" data-go="chat">Create Account</button><button class="btn ghost" data-go="home">Back Home</button>
+      </div></div>
+    </section>
 
-                        <div className="glass p-12 max-w-2xl w-full text-center z-10">
-                            <h1 className="text-6xl font-extrabold neon-text mb-4 float">teenchat24.online</h1>
-                            <p className="text-gray-400 text-xl mb-10">Modern social chat for the next generation. Join the vibe.</p>
-                            
-                            <div className="flex flex-wrap gap-4 justify-center mb-12">
-                                <button onClick={() => setPage('chat')} className="btn-neon-purple px-8 py-3 rounded-lg font-bold uppercase tracking-wider">Start Chat</button>
-                                <button className="border border-white/20 px-8 py-3 rounded-lg font-bold hover:bg-white/10 transition">Guest Login</button>
-                            </div>
+    <section id="rules" class="page panel-page">
+      <h2 class="title logo">TeenTalk Rules</h2>
+      <div class="glass" style="padding:22px;"><ul class="muted" style="line-height:1.9; max-width:560px; margin:0 auto;">
+        <li>No abuse</li><li>No adult content</li><li>Be respectful</li><li>Age 13+</li>
+      </ul><div class="actions" style="margin-top:12px;"><button class="btn ghost" data-go="home">Back Home</button></div></div>
+    </section>
 
-                            <div className="grid grid-cols-3 gap-6">
-                                <div className="p-4 rounded-xl bg-white/5">
-                                    <div className="text-2xl font-bold text-cyan-400">1,240+</div>
-                                    <div className="text-xs text-gray-500 uppercase">Online</div>
-                                </div>
-                                <div className="p-4 rounded-xl bg-white/5">
-                                    <div className="text-2xl font-bold text-purple-400">Fast</div>
-                                    <div className="text-xs text-gray-500 uppercase">Socket.io</div>
-                                </div>
-                                <div className="p-4 rounded-xl bg-white/5">
-                                    <div className="text-2xl font-bold text-green-400">Secure</div>
-                                    <div className="text-xs text-gray-500 uppercase">Moderated</div>
-                                </div>
-                            </div>
-                        </div>
+    <section id="chat" class="page chat-page">
+      <header class="glass topbar">
+        <div class="top-left">
+          <button class="btn ghost" data-go="home">Exit</button>
+          <button class="btn ghost" data-go="rules">Rules</button>
+          <span class="pill">@<strong id="currentUserLabel"></strong></span>
+          <span class="pill" id="activeRoomLabel">#General</span>
+        </div>
+        <div class="top-right">
+          <button class="btn" id="groupAudioBtn">🔊 Group Audio</button>
+          <button class="btn" id="groupVideoBtn">📹 Group Video</button>
+          <button class="btn" id="startLiveBtn">🔴 Start Live</button>
+          <button class="btn" id="stopLiveBtn">⏹ Stop Live</button>
+          <button class="btn" id="settingsBtn">Settings</button>
+          <button class="btn danger" id="clearRoomBtn">Clear Room</button>
+        </div>
+      </header>
+
+      <section class="glass stories" id="storiesRow"></section>
+
+      <div class="chat-layout">
+        <aside class="glass side">
+          <p class="small-title">Chat Rooms</p>
+          <div class="room-list" id="roomList"></div>
+          <p class="small-title" style="margin-top:8px;">Online Users</p>
+          <input id="searchUsers" placeholder="Search user..." />
+          <div class="users" id="usersList"></div>
+          <div id="typingIndicator" class="typing"></div>
+        </aside>
+
+        <main class="glass main">
+          <div class="tabs">
+            <button id="tabPublic" class="tab-btn active">Public Room</button>
+            <button id="tabDM" class="tab-btn">1-to-1 Chat</button>
+          </div>
+
+          <section id="publicPanel" class="panel active">
+            <div class="pinned" id="pinnedBar">📌 Pinned: Welcome to TeenTalk Chat. Share good vibes only.</div>
+            <div class="live-preview" id="livePreviewBox">
+              <div class="live-controls">
+                <button class="btn" id="joinLiveBtn">▶ Join Live</button>
+                <span id="liveStatusText" class="muted" style="font-size:.8rem;">No live stream in this room</span>
+              </div>
+              <video id="liveVideo" autoplay playsinline muted></video>
+            </div>
+            <div id="messages" class="messages"></div>
+            <form id="chatForm" class="composer">
+              <button class="btn" type="button" id="emojiBtn">😊</button>
+              <button class="btn" type="button" id="attachBtn">📎</button>
+              <input id="chatInput" placeholder="Send a public message..." autocomplete="off" />
+              <button class="btn primary" type="submit">Send</button>
+            </form>
+            <input id="publicFileInput" type="file" hidden />
+          </section>
+
+          <section id="dmPanel" class="panel">
+            <div class="dm-layout">
+              <aside class="dm-contacts" id="dmContacts"></aside>
+              <section class="dm-main">
+                <header class="dm-header">
+                  <div>
+                    <div class="profile-chip">
+                      <img id="dmTargetAvatar" class="avatar" alt="DM avatar" src="" />
+                      <strong id="dmTargetName">Select contact</strong>
                     </div>
-                );
-            }
+                    <div class="dm-status" id="dmTargetStatus">Last seen recently</div>
+                  </div>
+                  <div class="dm-actions">
+                    <button class="dm-btn" id="voiceCallBtn">📞 Voice</button>
+                    <button class="dm-btn" id="videoCallBtn">🎥 Video</button>
+                    <button class="dm-btn" id="blockBtn">🚫 Block</button>
+                  </div>
+                </header>
+                <div id="dmMessages" class="dm-messages"></div>
+                <form id="dmForm" class="dm-compose">
+                  <button type="button" class="dm-btn" id="dmEmojiBtn">😊</button>
+                  <input id="dmInput" placeholder="Type a private message..." />
+                  <button type="button" class="dm-btn" id="dmAttachBtn">📎</button>
+                  <button type="submit" class="btn primary">Send</button>
+                </form>
+                <input id="dmFileInput" type="file" hidden />
+              </section>
+            </div>
+          </section>
+        </main>
 
-            return (
-                <div className="flex h-screen p-4 gap-4 overflow-hidden">
-                    {/* Sidebar */}
-                    <div className="glass w-64 flex flex-col p-4">
-                        <h2 className="text-xl font-bold mb-8 neon-text">TEENCHAT24</h2>
-                        <div className="flex-1 space-y-2">
-                            {['General', 'Gaming', 'Music', 'Vibe'].map(r => (
-                                <div key={r} className={`p-3 rounded-lg cursor-pointer ${r === 'General' ? 'bg-white/10' : 'hover:bg-white/5'}`}>
-                                    # {r}
-                                </div>
-                            ))}
-                        </div>
-                        <div className="glass p-3 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500"></div>
-                            <div>
-                                <div className="text-sm font-bold">PreviewUser</div>
-                                <div className="text-[10px] text-green-400">● Online</div>
-                            </div>
-                        </div>
-                    </div>
+        <aside class="glass meta">
+          <p class="small-title">Options</p>
+          <div class="meta-card"><strong id="roomStat">Room: General</strong><div class="muted">Switch room or DM mode</div></div>
+          <div class="meta-card"><strong id="messageStat">Messages: 0</strong><div class="muted">Live count + interactions</div></div>
+          <div class="meta-card"><strong>DM Features</strong><div class="muted">Unread badges, ticks, call buttons, block action</div></div>
+          <div class="meta-card">
+            <strong>My WhatsApp Profile</strong>
+            <div class="profile-chip" style="margin-top:8px;">
+              <img id="myProfileAvatar" class="avatar lg" alt="My profile picture" src="" />
+              <div>
+                <div id="myProfileName">TeenTalk User</div>
+                <div id="myProfileAbout" class="muted" style="font-size:.76rem;">About: Hey there! I'm using TeenTalk.</div>
+              </div>
+            </div>
+            <div class="profile-reel" id="myProfileReelBox">
+              <video id="myProfileVideo" controls muted loop playsinline></video>
+              <div id="myProfileVideoHint" class="muted">No profile video uploaded</div>
+            </div>
+            <button class="btn" id="editProfileBtn" style="width:100%; margin-top:8px;">Edit About, Picture & Video</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </div>
 
-                    {/* Chat Area */}
-                    <div className="glass flex-1 flex flex-col">
-                        <div className="p-4 border-b border-white/10 flex justify-between items-center">
-                            <h3 className="font-bold"># General</h3>
-                            <button onClick={() => setPage('home')} className="text-xs text-gray-400 hover:text-white">Exit</button>
-                        </div>
-                        <div className="flex-1 p-6 space-y-6 overflow-y-auto">
-                            <div className="flex gap-4">
-                                <div className="w-10 h-10 rounded-lg bg-cyan-900 border border-cyan-500/30 flex items-center justify-center">A</div>
-                                <div>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="font-bold text-cyan-400">Alex</span>
-                                        <span className="text-[10px] text-gray-500">4:20 PM</span>
-                                    </div>
-                                    <p className="text-gray-300">Yo, this new neon design is fire! 🔥</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center">S</div>
-                                <div>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="font-bold text-gray-400">System</span>
-                                        <span className="text-[10px] text-gray-500">4:21 PM</span>
-                                    </div>
-                                    <p className="text-gray-500 italic">User "NeonKiwi" joined the chat.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="p-4">
-                            <div className="glass bg-white/10 p-2 flex gap-3 items-center">
-                                <button className="w-10 h-10 hover:bg-white/10 rounded-lg">+</button>
-                                <input placeholder="Message #General..." className="flex-1 bg-transparent border-none outline-none" />
-                                <button className="px-4 py-2 bg-purple-600 rounded-lg font-bold">Send</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )
+  <aside id="privatePopup" class="glass private-popup">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;"><strong id="privateTitle">Private chat</strong><button class="btn ghost" id="closePrivate" style="padding:5px 8px;">✕</button></div>
+    <div id="privateBody" class="private-body"></div>
+    <form id="privateForm" style="display:grid; grid-template-columns:1fr auto; gap:6px;"><input id="privateInput" placeholder="Type private message..." /><button class="btn primary" type="submit">Send</button></form>
+  </aside>
+
+  <aside id="settingsPopup" class="glass settings-popup">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;"><strong>Chat Settings</strong><button class="btn ghost" id="closeSettings" style="padding:5px 8px;">✕</button></div>
+    <label class="muted" style="display:block; margin-bottom:7px;"><input type="checkbox" id="notifToggle" checked /> Enable notifications</label>
+    <label class="muted" style="display:block; margin-bottom:7px;"><input type="checkbox" id="compactToggle" /> Compact public messages</label>
+    <label class="muted" style="display:block; margin-bottom:7px;"><input type="checkbox" id="muteToggle" /> Mute fake public replies</label>
+    <button class="btn primary" id="saveSettingsBtn" style="width:100%;">Save Settings</button>
+  </aside>
+
+  <aside id="profilePopup" class="glass settings-popup" style="bottom: 92px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;"><strong>WhatsApp Profile Settings</strong><button class="btn ghost" id="closeProfile" style="padding:5px 8px;">✕</button></div>
+    <label class="muted" style="display:block; margin-bottom:6px;">Profile Picture URL</label>
+    <input id="profilePicInput" placeholder="https://..." style="margin-bottom:8px;" />
+    <label class="muted" style="display:block; margin-bottom:6px;">About</label>
+    <input id="aboutInput" maxlength="80" placeholder="Hey there! I'm using TeenTalk." style="margin-bottom:8px;" />
+
+    <label class="muted" style="display:block; margin-bottom:6px;">Profile Video URL (Instagram style reel)</label>
+    <input id="profileVideoInput" placeholder="https://...mp4" style="margin-bottom:8px;" />
+    <button class="btn ghost" id="uploadProfileVideoBtn" style="width:100%; margin-bottom:8px;">Upload Profile Video (max 50MB)</button>
+    <input id="profileVideoFileInput" type="file" accept="video/*" hidden />
+
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+      <button class="btn danger" id="removePicBtn">Remove Picture</button>
+      <button class="btn danger" id="removeVideoBtn">Remove Video</button>
+      <button class="btn primary" id="saveProfileBtn">Save Profile</button>
+    </div>
+  </aside>
+
+
+
+  <aside id="callPopup" class="glass call-popup">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+      <strong id="callTitle">Calling...</strong>
+      <button class="btn ghost" id="closeCall" style="padding:5px 8px;">✕</button>
+    </div>
+    <div id="callSubtitle" class="muted" style="font-size:.82rem; margin-top:5px;">Connecting...</div>
+    <div id="callMembers" class="call-members"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <button class="btn" id="minimizeCallBtn">Minimize</button>
+      <button class="btn danger" id="endCallBtn">End Call</button>
+    </div>
+  </aside>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+  <script>
+    const BACKEND_URL = 'http://localhost:5000';
+    const pages = document.querySelectorAll('.page');
+    const goButtons = document.querySelectorAll('[data-go]');
+    const onlineCountEl = document.getElementById('onlineCount');
+
+    const roomListEl = document.getElementById('roomList');
+    const usersListEl = document.getElementById('usersList');
+    const storiesRow = document.getElementById('storiesRow');
+    const searchUsersEl = document.getElementById('searchUsers');
+    const typingIndicatorEl = document.getElementById('typingIndicator');
+    const messagesEl = document.getElementById('messages');
+    const pinnedBar = document.getElementById('pinnedBar');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const emojiBtn = document.getElementById('emojiBtn');
+    const attachBtn = document.getElementById('attachBtn');
+    const publicFileInput = document.getElementById('publicFileInput');
+
+    const tabPublic = document.getElementById('tabPublic');
+    const tabDM = document.getElementById('tabDM');
+    const publicPanel = document.getElementById('publicPanel');
+    const dmPanel = document.getElementById('dmPanel');
+
+    const dmContactsEl = document.getElementById('dmContacts');
+    const dmTargetAvatar = document.getElementById('dmTargetAvatar');
+    const dmTargetName = document.getElementById('dmTargetName');
+    const dmTargetStatus = document.getElementById('dmTargetStatus');
+    const dmMessagesEl = document.getElementById('dmMessages');
+    const dmForm = document.getElementById('dmForm');
+    const dmInput = document.getElementById('dmInput');
+    const dmEmojiBtn = document.getElementById('dmEmojiBtn');
+    const dmAttachBtn = document.getElementById('dmAttachBtn');
+    const dmFileInput = document.getElementById('dmFileInput');
+    const voiceCallBtn = document.getElementById('voiceCallBtn');
+    const videoCallBtn = document.getElementById('videoCallBtn');
+    const blockBtn = document.getElementById('blockBtn');
+
+    const roomStat = document.getElementById('roomStat');
+    const messageStat = document.getElementById('messageStat');
+    const currentUserLabel = document.getElementById('currentUserLabel');
+    const activeRoomLabel = document.getElementById('activeRoomLabel');
+
+    const guestNameEl = document.getElementById('guestName');
+    const guestRoomEl = document.getElementById('guestRoom');
+    const enterGuest = document.getElementById('enterGuest');
+
+    const groupAudioBtn = document.getElementById('groupAudioBtn');
+    const groupVideoBtn = document.getElementById('groupVideoBtn');
+    const startLiveBtn = document.getElementById('startLiveBtn');
+    const stopLiveBtn = document.getElementById('stopLiveBtn');
+    const joinLiveBtn = document.getElementById('joinLiveBtn');
+    const liveStatusText = document.getElementById('liveStatusText');
+    const liveVideo = document.getElementById('liveVideo');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const editProfileBtn = document.getElementById('editProfileBtn');
+    const clearRoomBtn = document.getElementById('clearRoomBtn');
+    const settingsPopup = document.getElementById('settingsPopup');
+    const closeSettings = document.getElementById('closeSettings');
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    const notifToggle = document.getElementById('notifToggle');
+    const compactToggle = document.getElementById('compactToggle');
+    const muteToggle = document.getElementById('muteToggle');
+
+    const profilePopup = document.getElementById('profilePopup');
+    const closeProfile = document.getElementById('closeProfile');
+    const profilePicInput = document.getElementById('profilePicInput');
+    const aboutInput = document.getElementById('aboutInput');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+    const removePicBtn = document.getElementById('removePicBtn');
+    const removeVideoBtn = document.getElementById('removeVideoBtn');
+    const profileVideoInput = document.getElementById('profileVideoInput');
+    const uploadProfileVideoBtn = document.getElementById('uploadProfileVideoBtn');
+    const profileVideoFileInput = document.getElementById('profileVideoFileInput');
+    const myProfileAvatar = document.getElementById('myProfileAvatar');
+    const myProfileName = document.getElementById('myProfileName');
+    const myProfileAbout = document.getElementById('myProfileAbout');
+    const myProfileVideo = document.getElementById('myProfileVideo');
+    const myProfileVideoHint = document.getElementById('myProfileVideoHint');
+
+    const privatePopup = document.getElementById('privatePopup');
+    const privateTitle = document.getElementById('privateTitle');
+    const privateBody = document.getElementById('privateBody');
+    const privateForm = document.getElementById('privateForm');
+    const privateInput = document.getElementById('privateInput');
+    const closePrivate = document.getElementById('closePrivate');
+
+    const callPopup = document.getElementById('callPopup');
+    const callTitle = document.getElementById('callTitle');
+    const callSubtitle = document.getElementById('callSubtitle');
+    const callMembers = document.getElementById('callMembers');
+    const closeCall = document.getElementById('closeCall');
+    const minimizeCallBtn = document.getElementById('minimizeCallBtn');
+    const endCallBtn = document.getElementById('endCallBtn');
+
+    const toast = document.getElementById('toast');
+
+    let rooms = ['General'];
+    let onlineUsers = [];
+    let currentUser = `Guest_${Math.floor(Math.random() * 9000 + 1000)}`;
+    let currentRoom = 'General';
+    let currentDM = '';
+    let privateTarget = '';
+    let messageId = 1000;
+    let typingTimeout;
+    let socket = null;
+
+    const settings = { notifications: true, compact: false, muteFakeReplies: false };
+    const profile = { about: "Hey there! I'm using TeenTalk.", photoUrl: '', videoUrl: '' };
+    const dmThreads = {};
+    const blockedContacts = new Set();
+    let localLiveStream = null;
+    let activeLive = null; // { hostSocketId, hostUsername, startedAt }
+    const livePeers = new Map(); // socketId -> RTCPeerConnection
+
+    function notify(msg) {
+      if (!settings.notifications) return;
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+
+
+    function formatBytes(bytes) {
+      if (!bytes && bytes !== 0) return '0 B';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      let size = bytes;
+      let i = 0;
+      while (size >= 1024 && i < units.length - 1) { size /= 1024; i++; }
+      return `${size.toFixed(size >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
+    }
+
+    function fileMessageHtml(fileName, fileSize, href) {
+      return `<div class="file-card"><div>📎 <strong>${fileName}</strong></div><div class="file-meta">${formatBytes(fileSize)} • file attachment</div>${href ? `<a href="${href}" download="${fileName}" class="file-meta">Download</a>` : ''}</div>`;
+    }
+
+    function simulateUpload(onProgress, onDone) {
+      let p = 0;
+      const t = setInterval(() => {
+        p += Math.floor(Math.random() * 18) + 8;
+        if (p >= 100) {
+          p = 100;
+          onProgress(p);
+          clearInterval(t);
+          setTimeout(onDone, 180);
+          return;
         }
+        onProgress(p);
+      }, 120);
+    }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+    function getTime() {
+      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function avatarFor(name, photoUrl = '') {
+      if (photoUrl && /^https?:\/\//i.test(photoUrl)) return photoUrl;
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=22293d&color=ffffff&size=96`;
+    }
+
+    function renderMyProfileCard() {
+      myProfileName.textContent = currentUser;
+      myProfileAbout.textContent = `About: ${profile.about}`;
+      myProfileAvatar.src = avatarFor(currentUser, profile.photoUrl);
+      profilePicInput.value = profile.photoUrl;
+      aboutInput.value = profile.about;
+      profileVideoInput.value = profile.videoUrl || '';
+
+      if (profile.videoUrl) {
+        myProfileVideo.src = profile.videoUrl;
+        myProfileVideo.style.display = 'block';
+        myProfileVideoHint.textContent = 'Profile video ready';
+      } else {
+        myProfileVideo.removeAttribute('src');
+        myProfileVideo.load();
+        myProfileVideo.style.display = 'none';
+        myProfileVideoHint.textContent = 'No profile video uploaded';
+      }
+    }
+
+    async function loadRooms() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/rooms`);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length) {
+          rooms = data;
+          if (!rooms.includes(currentRoom)) currentRoom = rooms[0];
+        }
+      } catch (_) {}
+      renderRooms();
+    }
+
+    async function refreshOnlineCount() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/online-count`);
+        const data = await res.json();
+        onlineCountEl.textContent = data?.count ?? 0;
+      } catch (_) {
+        onlineCountEl.textContent = 0;
+      }
+    }
+
+    function setupSocket() {
+      if (typeof io !== 'function') {
+        notify('Backend realtime unavailable');
+        return;
+      }
+      socket = io(BACKEND_URL, { transports: ['websocket', 'polling'] });
+
+      socket.on('connect', () => {
+        socket.emit('join', { uid: currentUser, username: currentUser, room: currentRoom });
+      });
+
+      socket.on('room-users', users => {
+        onlineUsers = Array.isArray(users) ? users : [];
+        renderUsers();
+        renderStories();
+        renderDMContacts();
+        refreshOnlineCount();
+      });
+
+      socket.on('live-started', ({ room, hostSocketId, hostUsername }) => {
+        if (room !== currentRoom) return;
+        activeLive = { room, hostSocketId, hostUsername };
+        liveStatusText.textContent = `${hostUsername} is live now`;
+        liveVideo.muted = hostSocketId === socket.id;
+        notify(`${hostUsername} started live stream`);
+      });
+
+      socket.on('live-stopped', ({ room, hostSocketId }) => {
+        if (room !== currentRoom) return;
+        if (activeLive && activeLive.hostSocketId === hostSocketId) activeLive = null;
+        liveStatusText.textContent = 'No live stream in this room';
+        if (!localLiveStream) {
+          liveVideo.srcObject = null;
+        }
+        notify('Live stream ended');
+      });
+
+      socket.on('live-stream-status', (stream) => {
+        activeLive = stream;
+        liveStatusText.textContent = stream ? `${stream.hostUsername} is live now` : 'No live stream in this room';
+      });
+
+      socket.on('live-offer', async ({ fromSocketId, offer, room }) => {
+        if (room !== currentRoom) return;
+        if (fromSocketId !== activeLive?.hostSocketId) return;
+        try {
+          const pc = createPeer(fromSocketId, false);
+          await pc.setRemoteDescription(new RTCSessionDescription(offer));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          socket.emit('live-answer', { targetSocketId: fromSocketId, answer });
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      socket.on('live-offer-request', async ({ fromSocketId, room }) => {
+        if (!activeLive || activeLive.hostSocketId !== socket.id || room !== currentRoom) return;
+        const pc = createPeer(fromSocketId, true);
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit('live-offer', { targetSocketId: fromSocketId, offer, room: currentRoom });
+      });
+
+      socket.on('live-answer', async ({ fromSocketId, answer }) => {
+        const pc = livePeers.get(fromSocketId);
+        if (!pc) return;
+        try {
+          await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      socket.on('live-ice-candidate', async ({ fromSocketId, candidate }) => {
+        const pc = livePeers.get(fromSocketId);
+        if (!pc) return;
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      socket.on('receive-message', msg => {
+        if (msg?.room !== currentRoom) return;
+        appendPublicMessage(msg.username || msg.user || 'User', msg.text || '');
+      });
+
+      socket.on('user-typing', ({ username, isTyping }) => {
+        typingIndicatorEl.textContent = isTyping ? `${username} is typing...` : '';
+      });
+
+      socket.on('disconnect', () => {
+        onlineUsers = [];
+        renderUsers();
+        renderStories();
+        renderDMContacts();
+      });
+    }
+
+
+
+    function createPeer(targetSocketId, isHost) {
+      const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+      livePeers.set(targetSocketId, pc);
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('live-ice-candidate', { targetSocketId, candidate: event.candidate });
+        }
+      };
+
+      if (isHost && localLiveStream) {
+        localLiveStream.getTracks().forEach(track => pc.addTrack(track, localLiveStream));
+      } else {
+        pc.ontrack = (event) => {
+          liveVideo.srcObject = event.streams[0];
+          liveVideo.muted = false;
+        };
+      }
+      return pc;
+    }
+
+    async function startLiveStream() {
+      if (!socket?.connected) return notify('Realtime backend not connected');
+      try {
+        if (localLiveStream) {
+          notify('Live already started');
+          return;
+        }
+        localLiveStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        liveVideo.srcObject = localLiveStream;
+        liveVideo.muted = true;
+        activeLive = { room: currentRoom, hostSocketId: socket.id, hostUsername: currentUser };
+        socket.emit('start-live', { room: currentRoom, username: currentUser });
+      } catch (e) {
+        notify('Camera/Mic permission denied');
+      }
+    }
+
+    function stopLiveStream() {
+      if (localLiveStream) {
+        localLiveStream.getTracks().forEach(t => t.stop());
+        localLiveStream = null;
+      }
+      livePeers.forEach(pc => pc.close());
+      livePeers.clear();
+      socket?.emit('stop-live', { room: currentRoom });
+      liveVideo.srcObject = null;
+      activeLive = null;
+      liveStatusText.textContent = 'No live stream in this room';
+    }
+
+    async function joinLiveStream() {
+      if (!socket?.connected) return notify('Realtime backend not connected');
+      if (!activeLive) {
+        socket.emit('request-live-stream', { room: currentRoom });
+        return notify('No active live stream found');
+      }
+      if (activeLive.hostSocketId === socket.id) return notify('You are the host');
+      try {
+        const pc = createPeer(activeLive.hostSocketId, false);
+        const offerRequest = { targetSocketId: activeLive.hostSocketId, room: currentRoom, request: true };
+        socket.emit('live-offer-request', offerRequest);
+        notify('Joining live stream...');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function switchPage(id) {
+      pages.forEach(p => p.classList.toggle('active', p.id === id));
+      if (id === 'chat') {
+        currentUserLabel.textContent = currentUser;
+        activeRoomLabel.textContent = `#${currentRoom}`;
+        renderMyProfileCard();
+        renderRooms();
+        renderUsers();
+        renderStories();
+        roomStat.textContent = `Room: ${currentRoom}`;
+        if (socket?.connected) {
+          socket.emit('join', { uid: currentUser, username: currentUser, room: currentRoom });
+          socket.emit('request-live-stream', { room: currentRoom });
+        }
+      }
+    }
+
+    goButtons.forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.go)));
+
+    function renderRooms() {
+      roomListEl.innerHTML = '';
+      rooms.forEach(room => {
+        const b = document.createElement('button');
+        b.textContent = `# ${room}`;
+        if (room === currentRoom) b.classList.add('active');
+        b.addEventListener('click', () => {
+          currentRoom = room;
+          activeRoomLabel.textContent = `#${room}`;
+          roomStat.textContent = `Room: ${room}`;
+          messagesEl.innerHTML = '';
+          updateMessageStat();
+          renderRooms();
+          if (socket?.connected) {
+            socket.emit('join', { uid: currentUser, username: currentUser, room: currentRoom });
+            socket.emit('request-live-stream', { room: currentRoom });
+          }
+          notify(`Switched to #${room}`);
+        });
+        roomListEl.appendChild(b);
+      });
+    }
+
+    function renderUsers() {
+      usersListEl.innerHTML = '';
+      const q = searchUsersEl.value.trim().toLowerCase();
+      onlineUsers
+        .filter(u => (u.username || '').toLowerCase().includes(q))
+        .forEach(u => {
+          const name = u.username;
+          const el = document.createElement('div');
+          el.className = 'user';
+          el.innerHTML = `<span>${name}</span><span style="color:var(--ok)">●</span>`;
+          el.addEventListener('click', () => openPrivate(name));
+          usersListEl.appendChild(el);
+        });
+      if (!usersListEl.children.length) {
+        usersListEl.innerHTML = '<div class="muted" style="font-size:.8rem; padding:6px;">No online users in this room</div>';
+      }
+    }
+
+    function renderStories() {
+      storiesRow.innerHTML = '';
+      onlineUsers.slice(0, 8).forEach(u => {
+        const name = u.username;
+        const s = document.createElement('button');
+        s.className = 'story';
+        s.innerHTML = `<div class="ring"><div class="ring-inner">${name?.[0] || '?'}</div></div><div>${(name || '').slice(0,8)}</div>`;
+        s.addEventListener('click', () => openPrivate(name));
+        storiesRow.appendChild(s);
+      });
+    }
+
+    function messageTools(node, msg) {
+      const tools = document.createElement('div');
+      tools.className = 'msg-tools';
+      const react = document.createElement('button');
+      react.textContent = '❤️ React';
+      react.onclick = () => { msg.reactions = (msg.reactions || 0) + 1; node.querySelector('[data-react]').textContent = `❤️ ${msg.reactions}`; };
+      const reply = document.createElement('button');
+      reply.textContent = 'Reply';
+      reply.onclick = () => { chatInput.value = `@${msg.user} `; chatInput.focus(); };
+      const pin = document.createElement('button');
+      pin.textContent = 'Pin';
+      pin.onclick = () => { pinnedBar.textContent = `📌 Pinned: ${msg.user} — ${msg.text}`; notify('Message pinned'); };
+      tools.append(react, reply, pin);
+      node.appendChild(tools);
+
+      if (msg.user === 'ModZed') {
+        const admin = document.createElement('div');
+        admin.className = 'admin-tools';
+        ['Kick user', 'Ban user', 'Delete message'].forEach(action => {
+          const b = document.createElement('button');
+          b.textContent = action;
+          b.onclick = () => {
+            if (action === 'Delete message') { node.remove(); updateMessageStat(); notify('Message deleted'); }
+            else notify(`${action}: ${msg.user}`);
+          };
+          admin.appendChild(b);
+        });
+        node.appendChild(admin);
+      }
+    }
+
+    function renderMsgNode(msg) {
+      const item = document.createElement('article');
+      item.className = 'msg';
+      if (settings.compact) item.style.padding = '6px';
+      item.innerHTML = `<div class="msg-head"><span><strong>${msg.user}</strong></span><span class="muted">${msg.time}</span></div><p>${msg.text}</p><div class="muted" data-react>❤️ ${msg.reactions || 0}</div>`;
+      messageTools(item, msg);
+      return item;
+    }
+
+    function appendPublicMessage(username, text) {
+      const msg = { id: messageId++, user: username, text, time: getTime(), reactions: 0 };
+      messagesEl.appendChild(renderMsgNode(msg));
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      updateMessageStat();
+    }
+
+    function updateMessageStat() {
+      messageStat.textContent = `Messages: ${messagesEl.querySelectorAll('.msg').length}`;
+    }
+
+    function renderDMContacts() {
+      dmContactsEl.innerHTML = '';
+      const contacts = onlineUsers.filter(u => u.username && u.username !== currentUser);
+      contacts.forEach(c => {
+        const name = c.username;
+        const row = document.createElement('div');
+        row.className = `contact ${name === currentDM ? 'active' : ''}`;
+        row.innerHTML = `
+          <div style="display:flex; gap:8px; align-items:center;">
+            <img class="avatar" src="${avatarFor(name)}" alt="${name}" />
+            <div style="flex:1; min-width:0;">
+              <div class="contact-top"><strong>${name}</strong></div>
+              <div class="muted" style="font-size:.74rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">online • real-time</div>
+            </div>
+          </div>`;
+        row.onclick = () => { currentDM = name; renderDMContacts(); renderDMThread(); };
+        dmContactsEl.appendChild(row);
+      });
+      if (!contacts.length) dmContactsEl.innerHTML = '<div class="muted" style="font-size:.8rem;">No online contacts available</div>';
+      if (!currentDM && contacts[0]) currentDM = contacts[0].username;
+    }
+
+    function tickDecor(tick) {
+      if (!tick) return '';
+      return tick.includes('blue') ? '✓✓ 🔵' : tick;
+    }
+
+    function renderDMThread() {
+      if (!currentDM) {
+        dmTargetName.textContent = 'No online contact';
+        dmTargetAvatar.src = avatarFor('TeenTalk');
+        dmTargetStatus.textContent = 'Only online users are shown';
+        dmMessagesEl.innerHTML = '<div class="muted" style="font-size:.85rem;">When someone comes online, you can chat here.</div>';
+        return;
+      }
+      dmTargetName.textContent = currentDM;
+      dmTargetAvatar.src = avatarFor(currentDM);
+      dmTargetStatus.textContent = blockedContacts.has(currentDM) ? 'Blocked contact' : 'online • real-time';
+      dmMessagesEl.innerHTML = '';
+      (dmThreads[currentDM] || []).forEach(m => {
+        const b = document.createElement('div');
+        b.className = `bubble ${m.from === 'me' ? 'out' : 'in'}`;
+        b.innerHTML = `${m.text}<span class="bubble-meta">${m.time} ${m.from === 'me' ? tickDecor(m.tick) : ''}</span>`;
+        dmMessagesEl.appendChild(b);
+      });
+      dmMessagesEl.scrollTop = dmMessagesEl.scrollHeight;
+    }
+
+    function postDM(text) {
+      if (!currentDM) return notify('No online contact selected');
+      if (blockedContacts.has(currentDM)) return notify('Unblock contact first');
+
+      dmThreads[currentDM] = dmThreads[currentDM] || [];
+      dmThreads[currentDM].push({ from: 'me', text, time: getTime(), tick: '✓' });
+      renderDMThread();
+
+      setTimeout(() => {
+        const mine = dmThreads[currentDM].findLast(m => m.from === 'me' && m.tick === '✓');
+        if (mine) mine.tick = '✓✓';
+        renderDMThread();
+      }, 600);
+    }
+
+    function openPrivate(name) {
+      if (!name || name === currentUser) return;
+      privateTarget = name;
+      privateTitle.textContent = `Private: ${name}`;
+      privateBody.innerHTML = `<article class="msg"><div class="msg-head"><strong>${name}</strong><span class="muted">now</span></div><p>Realtime profile online now 👋</p></article>`;
+      privatePopup.classList.add('active');
+    }
+
+    function openCall(type, mode) {
+      const group = mode === 'group';
+      const title = group
+        ? `${type === 'video' ? '📹' : '🔊'} Group ${type === 'video' ? 'Video' : 'Audio'} Call`
+        : `${type === 'video' ? '🎥' : '📞'} ${type === 'video' ? 'Video' : 'Audio'} Call with ${currentDM || 'contact'}`;
+      callTitle.textContent = title;
+      const participants = onlineUsers.map(u => u.username).filter(Boolean);
+      callSubtitle.textContent = group
+        ? `Room #${currentRoom} • ${participants.length} online participants`
+        : `1-to-1 • ${currentDM || 'No contact'} • ringing...`;
+
+      callMembers.innerHTML = '';
+      const members = group ? participants : [currentUser, currentDM].filter(Boolean);
+      members.forEach((name, i) => {
+        const row = document.createElement('div');
+        row.className = 'call-member';
+        const state = i === 0 ? 'You' : (i % 2 ? 'Ringing' : 'Connected');
+        row.innerHTML = `<span>${name}</span><span class="call-status">${state}</span>`;
+        callMembers.appendChild(row);
+      });
+
+      callPopup.classList.add('active');
+      notify(group ? 'Group call started (demo)' : '1-to-1 call started (demo)');
+    }
+
+    tabPublic.onclick = () => {
+      tabPublic.classList.add('active'); tabDM.classList.remove('active');
+      publicPanel.classList.add('active'); dmPanel.classList.remove('active');
+      notify('Public room mode');
+    };
+
+    tabDM.onclick = () => {
+      tabDM.classList.add('active'); tabPublic.classList.remove('active');
+      dmPanel.classList.add('active'); publicPanel.classList.remove('active');
+      renderDMContacts();
+      renderDMThread();
+      notify('One-to-one chat mode');
+    };
+
+    chatForm.onsubmit = (e) => {
+      e.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text) return;
+      if (!socket?.connected) return notify('Realtime backend not connected');
+      socket.emit('send-message', { room: currentRoom, text, username: currentUser, uid: currentUser, user: currentUser });
+      chatInput.value = '';
+    };
+
+    dmForm.onsubmit = (e) => {
+      e.preventDefault();
+      const text = dmInput.value.trim();
+      if (!text) return;
+      postDM(text);
+      dmInput.value = '';
+    };
+
+    chatInput.oninput = () => {
+      if (socket?.connected) socket.emit('typing', { room: currentRoom, username: currentUser, isTyping: true });
+      typingIndicatorEl.textContent = `${currentUser} is typing...`;
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        typingIndicatorEl.textContent = '';
+        if (socket?.connected) socket.emit('typing', { room: currentRoom, username: currentUser, isTyping: false });
+      }, 900);
+    };
+
+    emojiBtn.onclick = () => { chatInput.value += ' 😊'; chatInput.focus(); };
+    attachBtn.onclick = () => publicFileInput.click();
+    publicFileInput.onchange = () => {
+      const file = publicFileInput.files?.[0];
+      if (!file) return;
+      if (file.size > 50 * 1024 * 1024) {
+        notify('Max file size is 50MB');
+        publicFileInput.value = '';
+        return;
+      }
+      const uploadNode = document.createElement('article');
+      uploadNode.className = 'msg';
+      uploadNode.innerHTML = `<div class="msg-head"><span><strong>${currentUser}</strong></span><span class="muted">${getTime()}</span></div><p>Uploading ${file.name}...</p><div class="progress-wrap"><div class="progress-bar" id="pubUploadBar"></div></div>`;
+      messagesEl.appendChild(uploadNode);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      const bar = uploadNode.querySelector('#pubUploadBar');
+      simulateUpload(
+        (progress) => bar.style.width = `${progress}%`,
+        () => {
+          const fileUrl = URL.createObjectURL(file);
+          uploadNode.innerHTML = `<div class="msg-head"><span><strong>${currentUser}</strong></span><span class="muted">${getTime()}</span></div>${fileMessageHtml(file.name, file.size, fileUrl)}`;
+          updateMessageStat();
+          notify('File sent (demo)');
+        }
+      );
+      updateMessageStat();
+      publicFileInput.value = '';
+    };
+
+    dmEmojiBtn.onclick = () => { dmInput.value += ' 😊'; dmInput.focus(); };
+    dmAttachBtn.onclick = () => dmFileInput.click();
+    dmFileInput.onchange = () => {
+      const file = dmFileInput.files?.[0];
+      if (!file) return;
+      if (file.size > 50 * 1024 * 1024) {
+        notify('Max file size is 50MB');
+        dmFileInput.value = '';
+        return;
+      }
+      if (!currentDM) { notify('No online contact selected'); dmFileInput.value = ''; return; }
+      dmThreads[currentDM] = dmThreads[currentDM] || [];
+      dmThreads[currentDM].push({ from: 'me', text: `📎 ${file.name} (${formatBytes(file.size)})`, time: getTime(), tick: '✓' });
+      renderDMThread();
+      dmFileInput.value = '';
+      notify('DM file queued (demo)');
+    };
+
+    startLiveBtn.onclick = () => startLiveStream();
+    stopLiveBtn.onclick = () => stopLiveStream();
+    joinLiveBtn.onclick = () => joinLiveStream();
+
+    voiceCallBtn.onclick = () => openCall('audio', 'dm');
+    videoCallBtn.onclick = () => openCall('video', 'dm');
+    groupAudioBtn.onclick = () => openCall('audio', 'group');
+    groupVideoBtn.onclick = () => openCall('video', 'group');
+
+    blockBtn.onclick = () => {
+      if (!currentDM) return;
+      if (blockedContacts.has(currentDM)) blockedContacts.delete(currentDM);
+      else blockedContacts.add(currentDM);
+      blockBtn.textContent = blockedContacts.has(currentDM) ? '✅ Unblock' : '🚫 Block';
+      renderDMThread();
+      notify(blockedContacts.has(currentDM) ? `${currentDM} blocked` : `${currentDM} unblocked`);
+    };
+
+    settingsBtn.onclick = () => settingsPopup.classList.add('active');
+    editProfileBtn.onclick = () => {
+      renderMyProfileCard();
+      profilePopup.classList.add('active');
+    };
+    closeSettings.onclick = () => settingsPopup.classList.remove('active');
+    closeProfile.onclick = () => profilePopup.classList.remove('active');
+
+    saveSettingsBtn.onclick = () => {
+      settings.notifications = notifToggle.checked;
+      settings.compact = compactToggle.checked;
+      settings.muteFakeReplies = muteToggle.checked;
+      settingsPopup.classList.remove('active');
+      notify('Settings updated');
+    };
+
+    saveProfileBtn.onclick = () => {
+      profile.about = aboutInput.value.trim() || "Hey there! I'm using TeenTalk.";
+      const maybeUrl = profilePicInput.value.trim();
+      profile.photoUrl = /^https?:\/\//i.test(maybeUrl) ? maybeUrl : '';
+      const videoMaybeUrl = profileVideoInput.value.trim();
+      profile.videoUrl = /^https?:\/\//i.test(videoMaybeUrl) ? videoMaybeUrl : profile.videoUrl;
+      profilePopup.classList.remove('active');
+      renderMyProfileCard();
+      notify('Profile updated');
+    };
+
+    removePicBtn.onclick = () => {
+      profile.photoUrl = '';
+      profilePicInput.value = '';
+      renderMyProfileCard();
+      notify('Profile picture removed');
+    };
+
+    removeVideoBtn.onclick = () => {
+      profile.videoUrl = '';
+      profileVideoInput.value = '';
+      renderMyProfileCard();
+      notify('Profile video removed');
+    };
+
+    uploadProfileVideoBtn.onclick = () => profileVideoFileInput.click();
+    profileVideoFileInput.onchange = () => {
+      const file = profileVideoFileInput.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('video/')) {
+        notify('Please select a valid video file');
+        profileVideoFileInput.value = '';
+        return;
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        notify('Profile video max size is 50MB');
+        profileVideoFileInput.value = '';
+        return;
+      }
+      profile.videoUrl = URL.createObjectURL(file);
+      profileVideoInput.value = '';
+      renderMyProfileCard();
+      notify('Profile video uploaded');
+      profileVideoFileInput.value = '';
+    };
+
+    closeCall.onclick = () => { callPopup.classList.remove('active'); notify('Call closed'); };
+    endCallBtn.onclick = () => { callPopup.classList.remove('active'); notify('Call ended'); };
+    minimizeCallBtn.onclick = () => { callPopup.classList.remove('active'); notify('Call minimized'); };
+
+    clearRoomBtn.onclick = () => { messagesEl.innerHTML = ''; updateMessageStat(); notify('Room cleared'); };
+    searchUsersEl.oninput = renderUsers;
+
+    closePrivate.onclick = () => privatePopup.classList.remove('active');
+    privateForm.onsubmit = (e) => {
+      e.preventDefault();
+      const text = privateInput.value.trim();
+      if (!text || !privateTarget) return;
+      const me = document.createElement('article');
+      me.className = 'msg';
+      me.innerHTML = `<div class="msg-head"><strong>${currentUser}</strong><span class="muted">now</span></div><p>${text}</p>`;
+      privateBody.appendChild(me);
+      privateBody.scrollTop = privateBody.scrollHeight;
+      privateInput.value = '';
+    };
+
+    enterGuest.onclick = () => {
+      currentUser = guestNameEl.value.trim() || `Guest_${Math.floor(Math.random() * 9000 + 1000)}`;
+      currentRoom = guestRoomEl.value;
+      if (!rooms.includes(currentRoom)) rooms.push(currentRoom);
+      switchPage('chat');
+      if (socket?.connected) {
+        socket.emit('join', { uid: currentUser, username: currentUser, room: currentRoom });
+        socket.emit('request-live-stream', { room: currentRoom });
+      }
+    };
+
+    refreshOnlineCount();
+    loadRooms();
+    setupSocket();
+    setInterval(refreshOnlineCount, 4000);
+  </script>
 </body>
 </html>
