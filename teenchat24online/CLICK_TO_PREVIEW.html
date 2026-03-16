@@ -364,7 +364,9 @@
 
   <div id="toast" class="toast"></div>
 
+  <script src="http://localhost:5000/socket.io/socket.io.js"></script>
   <script>
+    const BACKEND_URL = 'http://localhost:5000';
     const pages = document.querySelectorAll('.page');
     const goButtons = document.querySelectorAll('[data-go]');
     const onlineCountEl = document.getElementById('onlineCount');
@@ -447,45 +449,20 @@
 
     const toast = document.getElementById('toast');
 
-    const rooms = ['General', 'Gaming', 'Music', 'Study', 'Confessions'];
-    const users = ['NovaKid', 'PixelRush', 'LunaVibe', 'SkyByte', 'ModZed', 'CocoaCloud', 'VioletRider'];
-    const dmContacts = [
-      { name: 'NovaKid', lastSeen: 'online', unread: 2, blocked: false, about: 'Designing neon themes ✨' },
-      { name: 'LunaVibe', lastSeen: 'last seen 2m ago', unread: 0, blocked: false, about: 'Music lover 🎧' },
-      { name: 'SkyByte', lastSeen: 'last seen 9m ago', unread: 1, blocked: false, about: 'Study + coding buddy' },
-      { name: 'CocoaCloud', lastSeen: 'online', unread: 0, blocked: false, about: 'Coffee and chill chats ☕' }
-    ];
-
-    const roomMessages = {
-      General: [
-        { id: 1, user: 'NovaKid', text: 'Instagram style + DM mode looks awesome 💫', time: '4:20 PM' },
-        { id: 2, user: 'ModZed', text: 'No abuse and be respectful, please.', time: '4:21 PM', admin: true },
-        { id: 3, user: 'LunaVibe', text: 'Switch to one-to-one tab for DM 👀', time: '4:22 PM' }
-      ],
-      Gaming: [{ id: 10, user: 'PixelRush', text: 'Anyone online for ranked?', time: '4:30 PM' }],
-      Music: [{ id: 20, user: 'CocoaCloud', text: 'Drop your top 3 songs 🎧', time: '4:31 PM' }],
-      Study: [{ id: 30, user: 'SkyByte', text: 'Math revision room open 📚', time: '4:32 PM' }],
-      Confessions: [{ id: 40, user: 'VioletRider', text: 'Anonymous mode coming soon 😶‍🌫️', time: '4:33 PM' }]
-    };
-
-    const dmThreads = {
-      NovaKid: [
-        { from: 'NovaKid', text: 'Hey! WhatsApp-like DM is super cool.', time: '4:24 PM', tick: '✓✓' },
-        { from: 'me', text: 'Thanks! Try voice/video buttons too.', time: '4:25 PM', tick: '✓✓ blue' }
-      ],
-      LunaVibe: [{ from: 'LunaVibe', text: 'Want playlist links?', time: '4:20 PM', tick: '✓' }],
-      SkyByte: [{ from: 'SkyByte', text: 'Need homework help?', time: '4:19 PM', tick: '✓✓' }],
-      CocoaCloud: [{ from: 'CocoaCloud', text: 'Ping me when free!', time: '4:16 PM', tick: '✓' }]
-    };
-
+    let rooms = ['General'];
+    let onlineUsers = [];
     let currentUser = `Guest_${Math.floor(Math.random() * 9000 + 1000)}`;
     let currentRoom = 'General';
-    let currentDM = 'NovaKid';
+    let currentDM = '';
     let privateTarget = '';
     let messageId = 1000;
     let typingTimeout;
+    let socket = null;
+
     const settings = { notifications: true, compact: false, muteFakeReplies: false };
     const profile = { about: "Hey there! I'm using TeenTalk.", photoUrl: '' };
+    const dmThreads = {};
+    const blockedContacts = new Set();
 
     function notify(msg) {
       if (!settings.notifications) return;
@@ -493,24 +470,6 @@
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 1500);
     }
-
-    function switchPage(id) {
-      pages.forEach(p => p.classList.toggle('active', p.id === id));
-      if (id === 'chat') {
-        currentUserLabel.textContent = currentUser;
-        activeRoomLabel.textContent = `#${currentRoom}`;
-        renderMyProfileCard();
-        renderRooms();
-        renderUsers();
-        renderStories();
-        renderMessages();
-        renderDMContacts();
-        renderDMThread();
-        roomStat.textContent = `Room: ${currentRoom}`;
-      }
-    }
-
-    goButtons.forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.go)));
 
     function getTime() {
       return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -529,31 +488,81 @@
       aboutInput.value = profile.about;
     }
 
+    async function loadRooms() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/rooms`);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length) {
+          rooms = data;
+          if (!rooms.includes(currentRoom)) currentRoom = rooms[0];
+        }
+      } catch (_) {}
+      renderRooms();
+    }
 
+    async function refreshOnlineCount() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/online-count`);
+        const data = await res.json();
+        onlineCountEl.textContent = data?.count ?? 0;
+      } catch (_) {
+        onlineCountEl.textContent = 0;
+      }
+    }
 
-    function openCall(type, mode) {
-      const group = mode === 'group';
-      const title = group
-        ? `${type === 'video' ? '📹' : '🔊'} Group ${type === 'video' ? 'Video' : 'Audio'} Call`
-        : `${type === 'video' ? '🎥' : '📞'} ${type === 'video' ? 'Video' : 'Audio'} Call with ${currentDM}`;
-      callTitle.textContent = title;
-      callSubtitle.textContent = group
-        ? `Room #${currentRoom} • ${users.length + 1} participants invited`
-        : `1-to-1 • ${currentDM} • ringing...`;
+    function setupSocket() {
+      if (typeof io !== 'function') {
+        notify('Backend realtime unavailable');
+        return;
+      }
+      socket = io(BACKEND_URL, { transports: ['websocket', 'polling'] });
 
-      callMembers.innerHTML = '';
-      const members = group ? [currentUser, ...users.slice(0, 6)] : [currentUser, currentDM];
-      members.forEach((name, i) => {
-        const row = document.createElement('div');
-        row.className = 'call-member';
-        const state = i === 0 ? 'You' : (i % 2 ? 'Ringing' : 'Connected');
-        row.innerHTML = `<span>${name}</span><span class="call-status">${state}</span>`;
-        callMembers.appendChild(row);
+      socket.on('connect', () => {
+        socket.emit('join', { uid: currentUser, username: currentUser, room: currentRoom });
       });
 
-      callPopup.classList.add('active');
-      notify(group ? 'Group call started (demo)' : '1-to-1 call started (demo)');
+      socket.on('room-users', users => {
+        onlineUsers = Array.isArray(users) ? users : [];
+        renderUsers();
+        renderStories();
+        renderDMContacts();
+        refreshOnlineCount();
+      });
+
+      socket.on('receive-message', msg => {
+        if (msg?.room !== currentRoom) return;
+        appendPublicMessage(msg.username || msg.user || 'User', msg.text || '');
+      });
+
+      socket.on('user-typing', ({ username, isTyping }) => {
+        typingIndicatorEl.textContent = isTyping ? `${username} is typing...` : '';
+      });
+
+      socket.on('disconnect', () => {
+        onlineUsers = [];
+        renderUsers();
+        renderStories();
+        renderDMContacts();
+      });
     }
+
+    function switchPage(id) {
+      pages.forEach(p => p.classList.toggle('active', p.id === id));
+      if (id === 'chat') {
+        currentUserLabel.textContent = currentUser;
+        activeRoomLabel.textContent = `#${currentRoom}`;
+        renderMyProfileCard();
+        renderRooms();
+        renderUsers();
+        renderStories();
+        roomStat.textContent = `Room: ${currentRoom}`;
+        if (socket?.connected) {
+          socket.emit('join', { uid: currentUser, username: currentUser, room: currentRoom });
+        }
+      }
+    }
+
+    goButtons.forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.go)));
 
     function renderRooms() {
       roomListEl.innerHTML = '';
@@ -565,8 +574,12 @@
           currentRoom = room;
           activeRoomLabel.textContent = `#${room}`;
           roomStat.textContent = `Room: ${room}`;
+          messagesEl.innerHTML = '';
+          updateMessageStat();
           renderRooms();
-          renderMessages();
+          if (socket?.connected) {
+            socket.emit('join', { uid: currentUser, username: currentUser, room: currentRoom });
+          }
           notify(`Switched to #${room}`);
         });
         roomListEl.appendChild(b);
@@ -576,21 +589,28 @@
     function renderUsers() {
       usersListEl.innerHTML = '';
       const q = searchUsersEl.value.trim().toLowerCase();
-      [currentUser, ...users].filter(u => u.toLowerCase().includes(q)).forEach(u => {
-        const el = document.createElement('div');
-        el.className = 'user';
-        el.innerHTML = `<span>${u}</span><span style="color:var(--ok)">●</span>`;
-        el.addEventListener('click', () => openPrivate(u));
-        usersListEl.appendChild(el);
-      });
+      onlineUsers
+        .filter(u => (u.username || '').toLowerCase().includes(q))
+        .forEach(u => {
+          const name = u.username;
+          const el = document.createElement('div');
+          el.className = 'user';
+          el.innerHTML = `<span>${name}</span><span style="color:var(--ok)">●</span>`;
+          el.addEventListener('click', () => openPrivate(name));
+          usersListEl.appendChild(el);
+        });
+      if (!usersListEl.children.length) {
+        usersListEl.innerHTML = '<div class="muted" style="font-size:.8rem; padding:6px;">No online users in this room</div>';
+      }
     }
 
     function renderStories() {
       storiesRow.innerHTML = '';
-      [currentUser, ...users].slice(0, 8).forEach(name => {
+      onlineUsers.slice(0, 8).forEach(u => {
+        const name = u.username;
         const s = document.createElement('button');
         s.className = 'story';
-        s.innerHTML = `<div class="ring"><div class="ring-inner">${name[0]}</div></div><div>${name.slice(0,8)}</div>`;
+        s.innerHTML = `<div class="ring"><div class="ring-inner">${name?.[0] || '?'}</div></div><div>${(name || '').slice(0,8)}</div>`;
         s.addEventListener('click', () => openPrivate(name));
         storiesRow.appendChild(s);
       });
@@ -611,7 +631,7 @@
       tools.append(react, reply, pin);
       node.appendChild(tools);
 
-      if (msg.admin || msg.user === 'ModZed') {
+      if (msg.user === 'ModZed') {
         const admin = document.createElement('div');
         admin.className = 'admin-tools';
         ['Kick user', 'Ban user', 'Delete message'].forEach(action => {
@@ -636,9 +656,9 @@
       return item;
     }
 
-    function renderMessages() {
-      messagesEl.innerHTML = '';
-      roomMessages[currentRoom].forEach(m => messagesEl.appendChild(renderMsgNode(m)));
+    function appendPublicMessage(username, text) {
+      const msg = { id: messageId++, user: username, text, time: getTime(), reactions: 0 };
+      messagesEl.appendChild(renderMsgNode(msg));
       messagesEl.scrollTop = messagesEl.scrollHeight;
       updateMessageStat();
     }
@@ -647,37 +667,26 @@
       messageStat.textContent = `Messages: ${messagesEl.querySelectorAll('.msg').length}`;
     }
 
-    function postPublic(text, user = currentUser) {
-      const msg = { id: messageId++, user, text, time: getTime(), reactions: 0 };
-      roomMessages[currentRoom].push(msg);
-      messagesEl.appendChild(renderMsgNode(msg));
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-      updateMessageStat();
-    }
-
-    function fakePublicReply() {
-      if (settings.muteFakeReplies) return;
-      const names = ['NovaKid', 'LunaVibe', 'SkyByte'];
-      const lines = ['Try one-to-one chat tab!', 'WhatsApp style bubbles look good 🔥', 'Voice call icon is just demo UI.'];
-      postPublic(lines[Math.floor(Math.random() * lines.length)], names[Math.floor(Math.random() * names.length)]);
-    }
-
     function renderDMContacts() {
       dmContactsEl.innerHTML = '';
-      dmContacts.forEach(c => {
+      const contacts = onlineUsers.filter(u => u.username && u.username !== currentUser);
+      contacts.forEach(c => {
+        const name = c.username;
         const row = document.createElement('div');
-        row.className = `contact ${c.name === currentDM ? 'active' : ''}`;
+        row.className = `contact ${name === currentDM ? 'active' : ''}`;
         row.innerHTML = `
           <div style="display:flex; gap:8px; align-items:center;">
-            <img class="avatar" src="${avatarFor(c.name)}" alt="${c.name}" />
+            <img class="avatar" src="${avatarFor(name)}" alt="${name}" />
             <div style="flex:1; min-width:0;">
-              <div class="contact-top"><strong>${c.name}</strong><span>${c.unread ? `<span class='badge'>${c.unread}</span>` : ''}</span></div>
-              <div class="muted" style="font-size:.74rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.blocked ? 'blocked' : c.lastSeen} • ${c.about || 'Hey there! I am on TeenTalk.'}</div>
+              <div class="contact-top"><strong>${name}</strong></div>
+              <div class="muted" style="font-size:.74rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">online • real-time</div>
             </div>
           </div>`;
-        row.onclick = () => { currentDM = c.name; c.unread = 0; renderDMContacts(); renderDMThread(); };
+        row.onclick = () => { currentDM = name; renderDMContacts(); renderDMThread(); };
         dmContactsEl.appendChild(row);
       });
+      if (!contacts.length) dmContactsEl.innerHTML = '<div class="muted" style="font-size:.8rem;">No online contacts available</div>';
+      if (!currentDM && contacts[0]) currentDM = contacts[0].username;
     }
 
     function tickDecor(tick) {
@@ -686,10 +695,16 @@
     }
 
     function renderDMThread() {
-      const contact = dmContacts.find(c => c.name === currentDM);
-      dmTargetName.textContent = contact ? contact.name : 'Select contact';
-      dmTargetAvatar.src = contact ? avatarFor(contact.name) : avatarFor('TeenTalk');
-      dmTargetStatus.textContent = contact ? (contact.blocked ? 'Blocked contact' : `${contact.lastSeen} • ${contact.about || ''}`) : '';
+      if (!currentDM) {
+        dmTargetName.textContent = 'No online contact';
+        dmTargetAvatar.src = avatarFor('TeenTalk');
+        dmTargetStatus.textContent = 'Only online users are shown';
+        dmMessagesEl.innerHTML = '<div class="muted" style="font-size:.85rem;">When someone comes online, you can chat here.</div>';
+        return;
+      }
+      dmTargetName.textContent = currentDM;
+      dmTargetAvatar.src = avatarFor(currentDM);
+      dmTargetStatus.textContent = blockedContacts.has(currentDM) ? 'Blocked contact' : 'online • real-time';
       dmMessagesEl.innerHTML = '';
       (dmThreads[currentDM] || []).forEach(m => {
         const b = document.createElement('div');
@@ -701,9 +716,8 @@
     }
 
     function postDM(text) {
-      if (!currentDM) return;
-      const contact = dmContacts.find(c => c.name === currentDM);
-      if (contact && contact.blocked) return notify('Unblock contact first');
+      if (!currentDM) return notify('No online contact selected');
+      if (blockedContacts.has(currentDM)) return notify('Unblock contact first');
 
       dmThreads[currentDM] = dmThreads[currentDM] || [];
       dmThreads[currentDM].push({ from: 'me', text, time: getTime(), tick: '✓' });
@@ -713,26 +727,40 @@
         const mine = dmThreads[currentDM].findLast(m => m.from === 'me' && m.tick === '✓');
         if (mine) mine.tick = '✓✓';
         renderDMThread();
-      }, 700);
-
-      setTimeout(() => {
-        const mine = dmThreads[currentDM].findLast(m => m.from === 'me' && m.tick === '✓✓');
-        if (mine) mine.tick = '✓✓ blue';
-        renderDMThread();
-      }, 1400);
-
-      setTimeout(() => {
-        dmThreads[currentDM].push({ from: currentDM, text: 'Got it 👍', time: getTime(), tick: '✓✓' });
-        renderDMThread();
-      }, 1700);
+      }, 600);
     }
 
     function openPrivate(name) {
-      if (name === currentUser) return;
+      if (!name || name === currentUser) return;
       privateTarget = name;
       privateTitle.textContent = `Private: ${name}`;
-      privateBody.innerHTML = `<article class="msg"><div class="msg-head"><strong>${name}</strong><span class="muted">now</span></div><p>Quick popup DM preview 👋</p></article>`;
+      privateBody.innerHTML = `<article class="msg"><div class="msg-head"><strong>${name}</strong><span class="muted">now</span></div><p>Realtime profile online now 👋</p></article>`;
       privatePopup.classList.add('active');
+    }
+
+    function openCall(type, mode) {
+      const group = mode === 'group';
+      const title = group
+        ? `${type === 'video' ? '📹' : '🔊'} Group ${type === 'video' ? 'Video' : 'Audio'} Call`
+        : `${type === 'video' ? '🎥' : '📞'} ${type === 'video' ? 'Video' : 'Audio'} Call with ${currentDM || 'contact'}`;
+      callTitle.textContent = title;
+      const participants = onlineUsers.map(u => u.username).filter(Boolean);
+      callSubtitle.textContent = group
+        ? `Room #${currentRoom} • ${participants.length} online participants`
+        : `1-to-1 • ${currentDM || 'No contact'} • ringing...`;
+
+      callMembers.innerHTML = '';
+      const members = group ? participants : [currentUser, currentDM].filter(Boolean);
+      members.forEach((name, i) => {
+        const row = document.createElement('div');
+        row.className = 'call-member';
+        const state = i === 0 ? 'You' : (i % 2 ? 'Ringing' : 'Connected');
+        row.innerHTML = `<span>${name}</span><span class="call-status">${state}</span>`;
+        callMembers.appendChild(row);
+      });
+
+      callPopup.classList.add('active');
+      notify(group ? 'Group call started (demo)' : '1-to-1 call started (demo)');
     }
 
     tabPublic.onclick = () => {
@@ -744,6 +772,8 @@
     tabDM.onclick = () => {
       tabDM.classList.add('active'); tabPublic.classList.remove('active');
       dmPanel.classList.add('active'); publicPanel.classList.remove('active');
+      renderDMContacts();
+      renderDMThread();
       notify('One-to-one chat mode');
     };
 
@@ -751,9 +781,9 @@
       e.preventDefault();
       const text = chatInput.value.trim();
       if (!text) return;
-      postPublic(text);
+      if (!socket?.connected) return notify('Realtime backend not connected');
+      socket.emit('send-message', { room: currentRoom, text, username: currentUser, uid: currentUser, user: currentUser });
       chatInput.value = '';
-      setTimeout(fakePublicReply, 700);
     };
 
     dmForm.onsubmit = (e) => {
@@ -765,9 +795,13 @@
     };
 
     chatInput.oninput = () => {
+      if (socket?.connected) socket.emit('typing', { room: currentRoom, username: currentUser, isTyping: true });
       typingIndicatorEl.textContent = `${currentUser} is typing...`;
       clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => typingIndicatorEl.textContent = '', 900);
+      typingTimeout = setTimeout(() => {
+        typingIndicatorEl.textContent = '';
+        if (socket?.connected) socket.emit('typing', { room: currentRoom, username: currentUser, isTyping: false });
+      }, 900);
     };
 
     emojiBtn.onclick = () => { chatInput.value += ' 😊'; chatInput.focus(); };
@@ -779,14 +813,14 @@
     videoCallBtn.onclick = () => openCall('video', 'dm');
     groupAudioBtn.onclick = () => openCall('audio', 'group');
     groupVideoBtn.onclick = () => openCall('video', 'group');
+
     blockBtn.onclick = () => {
-      const c = dmContacts.find(x => x.name === currentDM);
-      if (!c) return;
-      c.blocked = !c.blocked;
-      blockBtn.textContent = c.blocked ? '✅ Unblock' : '🚫 Block';
-      renderDMContacts();
+      if (!currentDM) return;
+      if (blockedContacts.has(currentDM)) blockedContacts.delete(currentDM);
+      else blockedContacts.add(currentDM);
+      blockBtn.textContent = blockedContacts.has(currentDM) ? '✅ Unblock' : '🚫 Block';
       renderDMThread();
-      notify(c.blocked ? `${currentDM} blocked` : `${currentDM} unblocked`);
+      notify(blockedContacts.has(currentDM) ? `${currentDM} blocked` : `${currentDM} unblocked`);
     };
 
     settingsBtn.onclick = () => settingsPopup.classList.add('active');
@@ -796,12 +830,12 @@
     };
     closeSettings.onclick = () => settingsPopup.classList.remove('active');
     closeProfile.onclick = () => profilePopup.classList.remove('active');
+
     saveSettingsBtn.onclick = () => {
       settings.notifications = notifToggle.checked;
       settings.compact = compactToggle.checked;
       settings.muteFakeReplies = muteToggle.checked;
       settingsPopup.classList.remove('active');
-      renderMessages();
       notify('Settings updated');
     };
 
@@ -825,7 +859,7 @@
     endCallBtn.onclick = () => { callPopup.classList.remove('active'); notify('Call ended'); };
     minimizeCallBtn.onclick = () => { callPopup.classList.remove('active'); notify('Call minimized'); };
 
-    clearRoomBtn.onclick = () => { roomMessages[currentRoom] = []; renderMessages(); notify('Room cleared'); };
+    clearRoomBtn.onclick = () => { messagesEl.innerHTML = ''; updateMessageStat(); notify('Room cleared'); };
     searchUsersEl.oninput = renderUsers;
 
     closePrivate.onclick = () => privatePopup.classList.remove('active');
@@ -844,10 +878,15 @@
     enterGuest.onclick = () => {
       currentUser = guestNameEl.value.trim() || `Guest_${Math.floor(Math.random() * 9000 + 1000)}`;
       currentRoom = guestRoomEl.value;
+      if (!rooms.includes(currentRoom)) rooms.push(currentRoom);
       switchPage('chat');
+      if (socket?.connected) socket.emit('join', { uid: currentUser, username: currentUser, room: currentRoom });
     };
 
-    setInterval(() => { onlineCountEl.textContent = 600 + Math.floor(Math.random() * 120); }, 3200);
+    refreshOnlineCount();
+    loadRooms();
+    setupSocket();
+    setInterval(refreshOnlineCount, 4000);
   </script>
 </body>
 </html>

@@ -35,7 +35,7 @@ try {
     console.warn("Ensure serviceAccountKey.json is present OR FIREBASE_SERVICE_ACCOUNT env var is set.");
 }
 
-const db = admin.firestore?.();
+const db = admin.apps.length ? admin.firestore() : null;
 
 // State tracking
 const onlineUsers = new Map(); // socket.id -> { uid, username, room }
