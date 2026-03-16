@@ -98,6 +98,11 @@
     .pinned { padding: 8px 10px; border: 1px solid rgba(254,218,117,.45); background: rgba(254,218,117,.12); border-radius: 10px; margin-bottom: 8px; font-size: .85rem; }
     .messages { height: calc(100% - 135px); overflow: auto; display: grid; gap: 8px; padding-right: 2px; }
     .msg { border: 1px solid var(--line); border-radius: 10px; background: #1f2433; padding: 9px; }
+
+    .file-card { margin-top: 6px; padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: #22293d; }
+    .file-meta { font-size: .78rem; color: var(--muted); }
+    .progress-wrap { margin-top: 7px; width: 100%; height: 7px; border-radius: 99px; background: rgba(255,255,255,.12); overflow: hidden; }
+    .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #25d366, #4f5bd5); transition: width .2s ease; }
     .msg-head { display: flex; justify-content: space-between; gap: 8px; font-size: .82rem; margin-bottom: 4px; }
     .msg-head strong { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
     .msg-tools, .admin-tools { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
@@ -268,6 +273,7 @@
               <input id="chatInput" placeholder="Send a public message..." autocomplete="off" />
               <button class="btn primary" type="submit">Send</button>
             </form>
+            <input id="publicFileInput" type="file" hidden />
           </section>
 
           <section id="dmPanel" class="panel">
@@ -295,6 +301,7 @@
                   <button type="button" class="dm-btn" id="dmAttachBtn">📎</button>
                   <button type="submit" class="btn primary">Send</button>
                 </form>
+                <input id="dmFileInput" type="file" hidden />
               </section>
             </div>
           </section>
@@ -382,6 +389,7 @@
     const chatInput = document.getElementById('chatInput');
     const emojiBtn = document.getElementById('emojiBtn');
     const attachBtn = document.getElementById('attachBtn');
+    const publicFileInput = document.getElementById('publicFileInput');
 
     const tabPublic = document.getElementById('tabPublic');
     const tabDM = document.getElementById('tabDM');
@@ -397,6 +405,7 @@
     const dmInput = document.getElementById('dmInput');
     const dmEmojiBtn = document.getElementById('dmEmojiBtn');
     const dmAttachBtn = document.getElementById('dmAttachBtn');
+    const dmFileInput = document.getElementById('dmFileInput');
     const voiceCallBtn = document.getElementById('voiceCallBtn');
     const videoCallBtn = document.getElementById('videoCallBtn');
     const blockBtn = document.getElementById('blockBtn');
@@ -469,6 +478,36 @@
       toast.textContent = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+
+
+    function formatBytes(bytes) {
+      if (!bytes && bytes !== 0) return '0 B';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      let size = bytes;
+      let i = 0;
+      while (size >= 1024 && i < units.length - 1) { size /= 1024; i++; }
+      return `${size.toFixed(size >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
+    }
+
+    function fileMessageHtml(fileName, fileSize, href) {
+      return `<div class="file-card"><div>📎 <strong>${fileName}</strong></div><div class="file-meta">${formatBytes(fileSize)} • file attachment</div>${href ? `<a href="${href}" download="${fileName}" class="file-meta">Download</a>` : ''}</div>`;
+    }
+
+    function simulateUpload(onProgress, onDone) {
+      let p = 0;
+      const t = setInterval(() => {
+        p += Math.floor(Math.random() * 18) + 8;
+        if (p >= 100) {
+          p = 100;
+          onProgress(p);
+          clearInterval(t);
+          setTimeout(onDone, 180);
+          return;
+        }
+        onProgress(p);
+      }, 120);
     }
 
     function getTime() {
@@ -805,9 +844,51 @@
     };
 
     emojiBtn.onclick = () => { chatInput.value += ' 😊'; chatInput.focus(); };
-    attachBtn.onclick = () => notify('Public attachment UI (demo)');
+    attachBtn.onclick = () => publicFileInput.click();
+    publicFileInput.onchange = () => {
+      const file = publicFileInput.files?.[0];
+      if (!file) return;
+      if (file.size > 50 * 1024 * 1024) {
+        notify('Max file size is 50MB');
+        publicFileInput.value = '';
+        return;
+      }
+      const uploadNode = document.createElement('article');
+      uploadNode.className = 'msg';
+      uploadNode.innerHTML = `<div class="msg-head"><span><strong>${currentUser}</strong></span><span class="muted">${getTime()}</span></div><p>Uploading ${file.name}...</p><div class="progress-wrap"><div class="progress-bar" id="pubUploadBar"></div></div>`;
+      messagesEl.appendChild(uploadNode);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      const bar = uploadNode.querySelector('#pubUploadBar');
+      simulateUpload(
+        (progress) => bar.style.width = `${progress}%`,
+        () => {
+          const fileUrl = URL.createObjectURL(file);
+          uploadNode.innerHTML = `<div class="msg-head"><span><strong>${currentUser}</strong></span><span class="muted">${getTime()}</span></div>${fileMessageHtml(file.name, file.size, fileUrl)}`;
+          updateMessageStat();
+          notify('File sent (demo)');
+        }
+      );
+      updateMessageStat();
+      publicFileInput.value = '';
+    };
+
     dmEmojiBtn.onclick = () => { dmInput.value += ' 😊'; dmInput.focus(); };
-    dmAttachBtn.onclick = () => notify('DM attachment UI (demo)');
+    dmAttachBtn.onclick = () => dmFileInput.click();
+    dmFileInput.onchange = () => {
+      const file = dmFileInput.files?.[0];
+      if (!file) return;
+      if (file.size > 50 * 1024 * 1024) {
+        notify('Max file size is 50MB');
+        dmFileInput.value = '';
+        return;
+      }
+      if (!currentDM) { notify('No online contact selected'); dmFileInput.value = ''; return; }
+      dmThreads[currentDM] = dmThreads[currentDM] || [];
+      dmThreads[currentDM].push({ from: 'me', text: `📎 ${file.name} (${formatBytes(file.size)})`, time: getTime(), tick: '✓' });
+      renderDMThread();
+      dmFileInput.value = '';
+      notify('DM file queued (demo)');
+    };
 
     voiceCallBtn.onclick = () => openCall('audio', 'dm');
     videoCallBtn.onclick = () => openCall('video', 'dm');
