@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TeenTalk Chat - Insta Style Preview</title>
+  <title>TeenTalk Chat - Insta + DM Preview</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet" />
@@ -11,326 +11,123 @@
     :root {
       --bg: #0f1014;
       --panel: #171923;
-      --panel-soft: #1e2230;
-      --text: #f5f7ff;
-      --muted: #a8afc6;
+      --soft: #1f2433;
       --line: rgba(255,255,255,.12);
+      --text: #f6f8ff;
+      --muted: #a8afc6;
+      --ok: #4dd08d;
+      --danger: #ff5d7f;
       --grad: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
-      --pink: #ff4f9e;
-      --purple: #8a5cff;
-      --blue: #5e7dff;
-      --green: #50d890;
-      --danger: #ff5a7d;
-      --radius: 16px;
-      --shadow: 0 12px 35px rgba(0,0,0,.35);
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      font-family: Inter, system-ui, -apple-system, sans-serif;
+      font-family: Inter, system-ui, sans-serif;
       min-height: 100vh;
-      background: radial-gradient(circle at 8% 8%, rgba(214,41,118,.18), transparent 28%),
-                  radial-gradient(circle at 90% 20%, rgba(79,91,213,.16), transparent 30%),
-                  radial-gradient(circle at 85% 88%, rgba(250,126,30,.12), transparent 30%),
-                  var(--bg);
       color: var(--text);
+      background: radial-gradient(circle at 10% 10%, rgba(214,41,118,.2), transparent 30%),
+                  radial-gradient(circle at 92% 20%, rgba(79,91,213,.15), transparent 30%),
+                  #0f1014;
       overflow: hidden;
     }
-
     .app { height: 100vh; overflow: auto; padding: 16px; }
     .page { display: none; }
     .page.active { display: block; }
-
-    .glass {
-      background: rgba(23,25,35,.86);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-
-    .logo {
-      font-size: clamp(2rem, 7vw, 4rem);
-      background: var(--grad);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      font-weight: 800;
-    }
-
-    .btn {
-      border: 1px solid transparent;
-      border-radius: 12px;
-      background: #2a2f40;
-      color: var(--text);
-      font-weight: 700;
-      font-size: .9rem;
-      cursor: pointer;
-      padding: 10px 14px;
-      transition: .2s ease;
-    }
-    .btn:hover { transform: translateY(-2px); }
-    .btn.primary { background: var(--grad); border: 0; }
-    .btn.ghost { border-color: var(--line); background: transparent; }
-    .btn.danger { border-color: rgba(255,90,125,.5); background: rgba(255,90,125,.1); }
-
-    input, select {
-      width: 100%;
-      background: #1d2130;
-      border: 1px solid var(--line);
-      color: var(--text);
-      border-radius: 10px;
-      padding: 11px;
-      outline: none;
-    }
-
-    input:focus, select:focus { border-color: #d62976; }
+    .glass { background: rgba(23,25,35,.9); border: 1px solid var(--line); border-radius: 16px; }
+    .logo { font-size: clamp(2rem, 7vw, 4rem); font-weight: 800; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
     .muted { color: var(--muted); }
+    .btn { border: 1px solid transparent; border-radius: 12px; background: #2a2f40; color: var(--text); padding: 10px 14px; font-weight: 700; font-size: .9rem; cursor: pointer; }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background: var(--grad); }
+    .btn.ghost { background: transparent; border-color: var(--line); }
+    .btn.danger { border-color: rgba(255,93,127,.5); background: rgba(255,93,127,.12); }
+    input, select { width: 100%; background: #1d2130; color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
 
-    .home {
-      min-height: calc(100vh - 32px);
-      display: grid;
-      place-items: center;
-    }
-
-    .home-card {
-      width: min(940px, 98vw);
-      text-align: center;
-      padding: clamp(22px, 4vw, 42px);
-    }
-
-    .counter {
-      margin: 14px auto;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--green);
-      font-weight: 700;
-    }
-
-    .actions { margin: 16px 0 22px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
-
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
-      gap: 12px;
-      margin-top: 14px;
-      text-align: left;
-    }
-
-    .feature-card {
-      border: 1px solid var(--line);
-      background: var(--panel-soft);
-      border-radius: 12px;
-      padding: 10px;
-    }
+    .home { min-height: calc(100vh - 32px); display: grid; place-items: center; }
+    .home-card { width: min(940px, 98vw); text-align: center; padding: clamp(24px, 4vw, 40px); }
+    .counter { margin: 12px auto; display: inline-flex; gap: 8px; color: var(--ok); font-weight: 700; }
+    .actions { margin: 16px 0 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .feature-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); text-align: left; }
+    .feature-card { padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: #1f2433; }
 
     .panel-page { max-width: 900px; margin: 0 auto; }
     .panel-page .glass { padding: 18px; }
-    .title { text-align: center; margin: 10px 0 12px; font-size: clamp(1.6rem, 6vw, 2.3rem); }
+    .title { text-align: center; margin: 10px 0 12px; font-size: clamp(1.7rem, 6vw, 2.4rem); }
     .form-grid { width: min(470px, 96vw); margin: 0 auto; display: grid; gap: 10px; }
 
     .chat-page { height: calc(100vh - 32px); display: grid; grid-template-rows: auto auto 1fr; gap: 10px; }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      padding: 10px 12px;
-    }
-
+    .topbar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 10px; }
     .top-left, .top-right { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; font-size: .75rem; }
 
-    .stories {
-      padding: 10px;
-      display: flex;
-      gap: 10px;
-      overflow: auto;
-    }
+    .stories { padding: 10px; display: flex; gap: 10px; overflow: auto; }
+    .story { min-width: 84px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+    .ring { width: 56px; height: 56px; margin: 0 auto 4px; border-radius: 50%; padding: 2px; background: var(--grad); }
+    .ring-inner { width: 100%; height: 100%; border-radius: 50%; display: grid; place-items: center; background: #11131c; color: white; font-weight: 700; }
 
-    .story {
-      min-width: 82px;
-      text-align: center;
-      font-size: .75rem;
-      color: var(--muted);
-      cursor: pointer;
-    }
-
-    .ring {
-      width: 58px;
-      height: 58px;
-      margin: 0 auto 5px;
-      border-radius: 50%;
-      padding: 2px;
-      background: var(--grad);
-    }
-
-    .ring-inner {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: #11131c;
-      display: grid;
-      place-items: center;
-      color: #fff;
-      font-weight: 700;
-    }
-
-    .chat-layout {
-      min-height: 0;
-      display: grid;
-      grid-template-columns: 250px 1fr 240px;
-      gap: 10px;
-    }
-
+    .chat-layout { min-height: 0; display: grid; grid-template-columns: 250px 1fr 250px; gap: 10px; }
     .side, .main, .meta { min-height: 0; padding: 10px; }
     .small-title { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 7px; }
-
-    .room-list button {
-      width: 100%;
-      text-align: left;
-      margin-bottom: 6px;
-      border: 1px solid transparent;
-      border-radius: 10px;
-      padding: 8px;
-      background: #252a3b;
-      color: var(--text);
-      cursor: pointer;
-    }
-
+    .room-list button { width: 100%; text-align: left; margin-bottom: 6px; padding: 8px; border-radius: 10px; border: 1px solid transparent; background: #252a3b; color: var(--text); cursor: pointer; }
     .room-list button.active { border-color: #d62976; }
-
-    .users { max-height: calc(100% - 175px); overflow: auto; padding-right: 2px; }
-    .user {
-      padding: 8px;
-      border-radius: 10px;
-      border: 1px solid transparent;
-      background: #23283a;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 6px;
-      cursor: pointer;
-    }
+    .users { max-height: 170px; overflow: auto; }
+    .user { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding: 8px; border-radius: 10px; border: 1px solid transparent; background: #23283a; cursor: pointer; }
     .user:hover { border-color: #8a5cff; }
+    .typing { min-height: 18px; color: #feda75; font-size: .8rem; margin-top: 6px; }
 
-    .typing { min-height: 18px; font-size: .8rem; color: #feda75; margin-top: 6px; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 8px; }
+    .tab-btn { flex: 1; border: 1px solid var(--line); background: #252a3b; color: var(--text); border-radius: 10px; padding: 7px; cursor: pointer; font-weight: 700; font-size: .8rem; }
+    .tab-btn.active { border-color: #25d366; box-shadow: inset 0 0 0 1px #25d366; }
 
-    .pill {
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      padding: 2px 8px;
-      font-size: .72rem;
-    }
-
-    .pinned {
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid rgba(254,218,117,.45);
-      background: rgba(254,218,117,.12);
-      margin-bottom: 8px;
-      font-size: .84rem;
-    }
-
-    .messages {
-      height: calc(100% - 132px);
-      overflow: auto;
-      display: grid;
-      gap: 8px;
-      padding-right: 2px;
-    }
-
-    .msg {
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #1f2433;
-      padding: 9px;
-    }
-
-    .msg-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 5px; font-size: .83rem; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .pinned { padding: 8px 10px; border: 1px solid rgba(254,218,117,.45); background: rgba(254,218,117,.12); border-radius: 10px; margin-bottom: 8px; font-size: .85rem; }
+    .messages { height: calc(100% - 135px); overflow: auto; display: grid; gap: 8px; padding-right: 2px; }
+    .msg { border: 1px solid var(--line); border-radius: 10px; background: #1f2433; padding: 9px; }
+    .msg-head { display: flex; justify-content: space-between; gap: 8px; font-size: .82rem; margin-bottom: 4px; }
     .msg-head strong { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .msg-tools, .admin-tools { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+    .msg-tools button, .admin-tools button { border-radius: 8px; border: 1px solid var(--line); background: #2a3044; color: var(--text); font-size: .72rem; padding: 5px 7px; cursor: pointer; }
 
-    .msg-tools, .admin-tools {
-      display: flex;
-      gap: 5px;
-      flex-wrap: wrap;
-      margin-top: 6px;
-    }
+    .composer { margin-top: 8px; display: grid; grid-template-columns: auto auto 1fr auto; gap: 6px; }
 
-    .msg-tools button, .admin-tools button {
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: #2a3044;
-      color: #edf2ff;
-      font-size: .72rem;
-      padding: 5px 7px;
-      cursor: pointer;
-    }
+    /* WhatsApp-like DM */
+    .dm-layout { display: grid; grid-template-columns: 210px 1fr; gap: 8px; min-height: 430px; }
+    .dm-contacts { border: 1px solid var(--line); border-radius: 12px; background: #1d2231; padding: 8px; overflow: auto; }
+    .contact { border: 1px solid transparent; border-radius: 10px; background: #252b3e; padding: 8px; margin-bottom: 6px; cursor: pointer; }
+    .contact.active { border-color: #25d366; }
+    .contact-top { display: flex; justify-content: space-between; font-size: .78rem; margin-bottom: 3px; }
+    .badge { background: #25d366; color: #0f1014; border-radius: 999px; font-size: .68rem; padding: 1px 6px; font-weight: 700; }
+    .dm-main { border: 1px solid var(--line); border-radius: 12px; background: #111b21; padding: 8px; display: grid; grid-template-rows: auto 1fr auto; gap: 8px; }
+    .dm-header { display: flex; justify-content: space-between; align-items: center; background: #202c33; border: 1px solid rgba(255,255,255,.08); padding: 8px; border-radius: 10px; }
+    .dm-status { color: #b5c8d4; font-size: .76rem; }
+    .dm-actions { display: flex; gap: 6px; }
+    .dm-btn { border: 1px solid rgba(255,255,255,.18); background: #2a3942; color: white; border-radius: 8px; padding: 5px 8px; cursor: pointer; font-size: .75rem; }
+    .dm-messages { overflow: auto; display: grid; gap: 7px; padding: 2px; }
+    .bubble { max-width: 78%; padding: 8px 9px; border-radius: 10px; font-size: .85rem; }
+    .bubble.in { background: #202c33; justify-self: start; }
+    .bubble.out { background: #005c4b; justify-self: end; }
+    .bubble-meta { display: block; font-size: .68rem; margin-top: 3px; opacity: .8; text-align: right; }
+    .dm-compose { display: grid; grid-template-columns: auto 1fr auto auto; gap: 6px; }
 
-    .composer {
-      margin-top: 8px;
-      display: grid;
-      grid-template-columns: auto auto 1fr auto;
-      gap: 6px;
-    }
+    .meta-card { border: 1px solid var(--line); border-radius: 10px; background: #20263a; padding: 9px; margin-bottom: 8px; font-size: .84rem; }
 
-    .meta-card {
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #20263a;
-      padding: 9px;
-      margin-bottom: 8px;
-      font-size: .84rem;
-    }
-
-    .private-popup, .settings-popup {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      width: min(370px, 92vw);
-      padding: 10px;
-      display: none;
-      z-index: 20;
-    }
+    .private-popup, .settings-popup { position: fixed; right: 16px; bottom: 16px; width: min(370px, 92vw); padding: 10px; display: none; z-index: 20; }
     .private-popup.active, .settings-popup.active { display: block; }
+    .private-body { height: 160px; overflow: auto; display: grid; gap: 6px; margin: 8px 0; }
 
-    .private-body { height: 170px; overflow: auto; display: grid; gap: 6px; margin: 8px 0; }
-
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 16px;
-      transform: translateX(-50%);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 8px 11px;
-      background: rgba(17,19,28,.95);
-      font-size: .85rem;
-      opacity: 0;
-      pointer-events: none;
-      transition: .2s;
-      z-index: 30;
-    }
-
+    .toast { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); border: 1px solid var(--line); border-radius: 10px; padding: 8px 11px; background: rgba(17,19,28,.95); opacity: 0; pointer-events: none; transition: .2s; z-index: 30; }
     .toast.show { opacity: 1; }
 
-    @media (max-width: 1040px) {
-      .chat-layout { grid-template-columns: 230px 1fr; }
-      .meta { display: none; }
-    }
-
-    @media (max-width: 840px) {
+    @media (max-width: 1100px) { .chat-layout { grid-template-columns: 240px 1fr; } .meta { display: none; } }
+    @media (max-width: 860px) {
       .chat-page { height: auto; }
       .chat-layout { grid-template-columns: 1fr; }
       .side { max-height: 280px; overflow: auto; }
-      .main { min-height: 64vh; }
-      .messages { height: calc(100% - 148px); }
+      .main { min-height: 68vh; }
       .composer { grid-template-columns: auto 1fr auto; }
       #attachBtn { display: none; }
+      .dm-layout { grid-template-columns: 1fr; }
+      .dm-contacts { max-height: 150px; }
     }
   </style>
 </head>
@@ -339,8 +136,8 @@
     <main id="home" class="page active home">
       <section class="glass home-card">
         <h1 class="logo">TeenTalk Chat</h1>
-        <p class="muted">Instagram-inspired gradient + modern chat experience for teens.</p>
-        <div class="counter">● <span id="onlineCount">612</span> users online</div>
+        <p class="muted">Instagram-inspired + WhatsApp-style one-to-one chat preview.</p>
+        <div class="counter">● <span id="onlineCount">634</span> users online</div>
         <div class="actions">
           <button class="btn primary" data-go="guest">Enter Chat as Guest</button>
           <button class="btn" data-go="login">Login</button>
@@ -348,71 +145,47 @@
           <button class="btn ghost" data-go="rules">Rules</button>
         </div>
         <div class="feature-grid">
-          <div class="feature-card"><strong>Instagram Theme</strong><div class="muted">Gradient rings + feed style</div></div>
-          <div class="feature-card"><strong>Stories Row</strong><div class="muted">Quick DM entry points</div></div>
-          <div class="feature-card"><strong>Polls + Reactions</strong><div class="muted">Interactive message options</div></div>
-          <div class="feature-card"><strong>Settings Popup</strong><div class="muted">Mute, compact mode, notifications</div></div>
+          <div class="feature-card"><strong>Public Rooms</strong><div class="muted">Group chat like before</div></div>
+          <div class="feature-card"><strong>1-to-1 DM</strong><div class="muted">WhatsApp-like contact list & bubbles</div></div>
+          <div class="feature-card"><strong>Calls + Last Seen</strong><div class="muted">Voice/video UI actions</div></div>
+          <div class="feature-card"><strong>Status Ticks</strong><div class="muted">Single/double/read indicators</div></div>
         </div>
       </section>
     </main>
 
     <section id="guest" class="page panel-page">
       <h2 class="title logo">Guest Mode</h2>
-      <div class="glass">
-        <div class="form-grid">
-          <input id="guestName" placeholder="Nickname" maxlength="18" />
-          <select id="guestRoom">
-            <option>General</option>
-            <option>Gaming</option>
-            <option>Music</option>
-            <option>Study</option>
-            <option>Confessions</option>
-          </select>
-          <button id="enterGuest" class="btn primary">Enter Public Chat Room</button>
-          <button class="btn ghost" data-go="home">Back Home</button>
-        </div>
-      </div>
+      <div class="glass"><div class="form-grid">
+        <input id="guestName" placeholder="Nickname" maxlength="18" />
+        <select id="guestRoom"><option>General</option><option>Gaming</option><option>Music</option><option>Study</option><option>Confessions</option></select>
+        <button id="enterGuest" class="btn primary">Enter Public Chat Room</button>
+        <button class="btn ghost" data-go="home">Back Home</button>
+      </div></div>
     </section>
 
     <section id="login" class="page panel-page">
       <h2 class="title logo">Login</h2>
-      <div class="glass">
-        <div class="form-grid">
-          <input placeholder="Username" />
-          <input type="password" placeholder="Password" />
-          <input type="email" placeholder="Email" />
-          <label class="muted"><input type="checkbox" /> Remember me</label>
-          <button class="btn primary" data-go="chat">Login to Chat</button>
-          <button class="btn ghost" data-go="home">Back Home</button>
-        </div>
-      </div>
+      <div class="glass"><div class="form-grid">
+        <input placeholder="Username" /><input type="password" placeholder="Password" /><input type="email" placeholder="Email" />
+        <label class="muted"><input type="checkbox" /> Remember me</label>
+        <button class="btn primary" data-go="chat">Login to Chat</button><button class="btn ghost" data-go="home">Back Home</button>
+      </div></div>
     </section>
 
     <section id="signup" class="page panel-page">
       <h2 class="title logo">Sign Up</h2>
-      <div class="glass">
-        <div class="form-grid">
-          <input placeholder="Username" />
-          <input type="password" placeholder="Password" />
-          <input type="email" placeholder="Email" />
-          <label class="muted"><input type="checkbox" /> Remember me</label>
-          <button class="btn primary" data-go="chat">Create Account</button>
-          <button class="btn ghost" data-go="home">Back Home</button>
-        </div>
-      </div>
+      <div class="glass"><div class="form-grid">
+        <input placeholder="Username" /><input type="password" placeholder="Password" /><input type="email" placeholder="Email" />
+        <label class="muted"><input type="checkbox" /> Remember me</label>
+        <button class="btn primary" data-go="chat">Create Account</button><button class="btn ghost" data-go="home">Back Home</button>
+      </div></div>
     </section>
 
     <section id="rules" class="page panel-page">
       <h2 class="title logo">TeenTalk Rules</h2>
-      <div class="glass" style="padding:22px;">
-        <ul class="muted" style="line-height:1.9; max-width: 560px; margin: 0 auto;">
-          <li>No abuse</li>
-          <li>No adult content</li>
-          <li>Be respectful</li>
-          <li>Age 13+</li>
-        </ul>
-        <div class="actions" style="margin-top: 12px;"><button class="btn ghost" data-go="home">Back Home</button></div>
-      </div>
+      <div class="glass" style="padding:22px;"><ul class="muted" style="line-height:1.9; max-width:560px; margin:0 auto;">
+        <li>No abuse</li><li>No adult content</li><li>Be respectful</li><li>Age 13+</li>
+      </ul><div class="actions" style="margin-top:12px;"><button class="btn ghost" data-go="home">Back Home</button></div></div>
     </section>
 
     <section id="chat" class="page chat-page">
@@ -424,7 +197,6 @@
           <span class="pill" id="activeRoomLabel">#General</span>
         </div>
         <div class="top-right">
-          <button class="btn" id="addPollBtn">Add Poll</button>
           <button class="btn" id="settingsBtn">Settings</button>
           <button class="btn danger" id="clearRoomBtn">Clear Room</button>
         </div>
@@ -443,46 +215,70 @@
         </aside>
 
         <main class="glass main">
-          <div class="pinned" id="pinnedBar">📌 Pinned: Welcome to TeenTalk Chat. Share good vibes only.</div>
-          <div id="messages" class="messages"></div>
-          <form id="chatForm" class="composer">
-            <button class="btn" type="button" id="emojiBtn">😊</button>
-            <button class="btn" type="button" id="attachBtn">📎</button>
-            <input id="chatInput" placeholder="Send a message..." autocomplete="off" />
-            <button class="btn primary" type="submit">Send</button>
-          </form>
+          <div class="tabs">
+            <button id="tabPublic" class="tab-btn active">Public Room</button>
+            <button id="tabDM" class="tab-btn">1-to-1 Chat</button>
+          </div>
+
+          <section id="publicPanel" class="panel active">
+            <div class="pinned" id="pinnedBar">📌 Pinned: Welcome to TeenTalk Chat. Share good vibes only.</div>
+            <div id="messages" class="messages"></div>
+            <form id="chatForm" class="composer">
+              <button class="btn" type="button" id="emojiBtn">😊</button>
+              <button class="btn" type="button" id="attachBtn">📎</button>
+              <input id="chatInput" placeholder="Send a public message..." autocomplete="off" />
+              <button class="btn primary" type="submit">Send</button>
+            </form>
+          </section>
+
+          <section id="dmPanel" class="panel">
+            <div class="dm-layout">
+              <aside class="dm-contacts" id="dmContacts"></aside>
+              <section class="dm-main">
+                <header class="dm-header">
+                  <div>
+                    <strong id="dmTargetName">Select contact</strong>
+                    <div class="dm-status" id="dmTargetStatus">Last seen recently</div>
+                  </div>
+                  <div class="dm-actions">
+                    <button class="dm-btn" id="voiceCallBtn">📞 Voice</button>
+                    <button class="dm-btn" id="videoCallBtn">🎥 Video</button>
+                    <button class="dm-btn" id="blockBtn">🚫 Block</button>
+                  </div>
+                </header>
+                <div id="dmMessages" class="dm-messages"></div>
+                <form id="dmForm" class="dm-compose">
+                  <button type="button" class="dm-btn" id="dmEmojiBtn">😊</button>
+                  <input id="dmInput" placeholder="Type a private message..." />
+                  <button type="button" class="dm-btn" id="dmAttachBtn">📎</button>
+                  <button type="submit" class="btn primary">Send</button>
+                </form>
+              </section>
+            </div>
+          </section>
         </main>
 
         <aside class="glass meta">
           <p class="small-title">Options</p>
-          <div class="meta-card"><strong id="roomStat">Room: General</strong><div class="muted">Switch rooms instantly</div></div>
+          <div class="meta-card"><strong id="roomStat">Room: General</strong><div class="muted">Switch room or DM mode</div></div>
           <div class="meta-card"><strong id="messageStat">Messages: 0</strong><div class="muted">Live count + interactions</div></div>
-          <div class="meta-card"><strong>Private Chat</strong><div class="muted">Click username or story avatar.</div></div>
+          <div class="meta-card"><strong>DM Features</strong><div class="muted">Unread badges, ticks, call buttons, block action</div></div>
         </aside>
       </div>
     </section>
   </div>
 
   <aside id="privatePopup" class="glass private-popup">
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-      <strong id="privateTitle">Private chat</strong>
-      <button class="btn ghost" id="closePrivate" style="padding:5px 8px;">✕</button>
-    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;"><strong id="privateTitle">Private chat</strong><button class="btn ghost" id="closePrivate" style="padding:5px 8px;">✕</button></div>
     <div id="privateBody" class="private-body"></div>
-    <form id="privateForm" style="display:grid; grid-template-columns:1fr auto; gap:6px;">
-      <input id="privateInput" placeholder="Type private message..." />
-      <button class="btn primary" type="submit">Send</button>
-    </form>
+    <form id="privateForm" style="display:grid; grid-template-columns:1fr auto; gap:6px;"><input id="privateInput" placeholder="Type private message..." /><button class="btn primary" type="submit">Send</button></form>
   </aside>
 
   <aside id="settingsPopup" class="glass settings-popup">
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
-      <strong>Chat Settings</strong>
-      <button class="btn ghost" id="closeSettings" style="padding:5px 8px;">✕</button>
-    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;"><strong>Chat Settings</strong><button class="btn ghost" id="closeSettings" style="padding:5px 8px;">✕</button></div>
     <label class="muted" style="display:block; margin-bottom:7px;"><input type="checkbox" id="notifToggle" checked /> Enable notifications</label>
-    <label class="muted" style="display:block; margin-bottom:7px;"><input type="checkbox" id="compactToggle" /> Compact messages</label>
-    <label class="muted" style="display:block; margin-bottom:7px;"><input type="checkbox" id="muteToggle" /> Mute fake replies</label>
+    <label class="muted" style="display:block; margin-bottom:7px;"><input type="checkbox" id="compactToggle" /> Compact public messages</label>
+    <label class="muted" style="display:block; margin-bottom:7px;"><input type="checkbox" id="muteToggle" /> Mute fake public replies</label>
     <button class="btn primary" id="saveSettingsBtn" style="width:100%;">Save Settings</button>
   </aside>
 
@@ -491,8 +287,8 @@
   <script>
     const pages = document.querySelectorAll('.page');
     const goButtons = document.querySelectorAll('[data-go]');
-
     const onlineCountEl = document.getElementById('onlineCount');
+
     const roomListEl = document.getElementById('roomList');
     const usersListEl = document.getElementById('usersList');
     const storiesRow = document.getElementById('storiesRow');
@@ -505,6 +301,23 @@
     const emojiBtn = document.getElementById('emojiBtn');
     const attachBtn = document.getElementById('attachBtn');
 
+    const tabPublic = document.getElementById('tabPublic');
+    const tabDM = document.getElementById('tabDM');
+    const publicPanel = document.getElementById('publicPanel');
+    const dmPanel = document.getElementById('dmPanel');
+
+    const dmContactsEl = document.getElementById('dmContacts');
+    const dmTargetName = document.getElementById('dmTargetName');
+    const dmTargetStatus = document.getElementById('dmTargetStatus');
+    const dmMessagesEl = document.getElementById('dmMessages');
+    const dmForm = document.getElementById('dmForm');
+    const dmInput = document.getElementById('dmInput');
+    const dmEmojiBtn = document.getElementById('dmEmojiBtn');
+    const dmAttachBtn = document.getElementById('dmAttachBtn');
+    const voiceCallBtn = document.getElementById('voiceCallBtn');
+    const videoCallBtn = document.getElementById('videoCallBtn');
+    const blockBtn = document.getElementById('blockBtn');
+
     const roomStat = document.getElementById('roomStat');
     const messageStat = document.getElementById('messageStat');
     const currentUserLabel = document.getElementById('currentUserLabel');
@@ -514,9 +327,14 @@
     const guestRoomEl = document.getElementById('guestRoom');
     const enterGuest = document.getElementById('enterGuest');
 
-    const clearRoomBtn = document.getElementById('clearRoomBtn');
-    const addPollBtn = document.getElementById('addPollBtn');
     const settingsBtn = document.getElementById('settingsBtn');
+    const clearRoomBtn = document.getElementById('clearRoomBtn');
+    const settingsPopup = document.getElementById('settingsPopup');
+    const closeSettings = document.getElementById('closeSettings');
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    const notifToggle = document.getElementById('notifToggle');
+    const compactToggle = document.getElementById('compactToggle');
+    const muteToggle = document.getElementById('muteToggle');
 
     const privatePopup = document.getElementById('privatePopup');
     const privateTitle = document.getElementById('privateTitle');
@@ -525,23 +343,22 @@
     const privateInput = document.getElementById('privateInput');
     const closePrivate = document.getElementById('closePrivate');
 
-    const settingsPopup = document.getElementById('settingsPopup');
-    const closeSettings = document.getElementById('closeSettings');
-    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-    const notifToggle = document.getElementById('notifToggle');
-    const compactToggle = document.getElementById('compactToggle');
-    const muteToggle = document.getElementById('muteToggle');
-
     const toast = document.getElementById('toast');
 
     const rooms = ['General', 'Gaming', 'Music', 'Study', 'Confessions'];
     const users = ['NovaKid', 'PixelRush', 'LunaVibe', 'SkyByte', 'ModZed', 'CocoaCloud', 'VioletRider'];
+    const dmContacts = [
+      { name: 'NovaKid', lastSeen: 'online', unread: 2, blocked: false },
+      { name: 'LunaVibe', lastSeen: 'last seen 2m ago', unread: 0, blocked: false },
+      { name: 'SkyByte', lastSeen: 'last seen 9m ago', unread: 1, blocked: false },
+      { name: 'CocoaCloud', lastSeen: 'online', unread: 0, blocked: false }
+    ];
 
     const roomMessages = {
       General: [
-        { id: 1, user: 'NovaKid', text: 'Instagram style on this chat looks awesome 💫', time: '4:20 PM' },
+        { id: 1, user: 'NovaKid', text: 'Instagram style + DM mode looks awesome 💫', time: '4:20 PM' },
         { id: 2, user: 'ModZed', text: 'No abuse and be respectful, please.', time: '4:21 PM', admin: true },
-        { id: 3, user: 'LunaVibe', text: 'Who wants to join private chat?', time: '4:22 PM' }
+        { id: 3, user: 'LunaVibe', text: 'Switch to one-to-one tab for DM 👀', time: '4:22 PM' }
       ],
       Gaming: [{ id: 10, user: 'PixelRush', text: 'Anyone online for ranked?', time: '4:30 PM' }],
       Music: [{ id: 20, user: 'CocoaCloud', text: 'Drop your top 3 songs 🎧', time: '4:31 PM' }],
@@ -549,20 +366,33 @@
       Confessions: [{ id: 40, user: 'VioletRider', text: 'Anonymous mode coming soon 😶‍🌫️', time: '4:33 PM' }]
     };
 
+    const dmThreads = {
+      NovaKid: [
+        { from: 'NovaKid', text: 'Hey! WhatsApp-like DM is super cool.', time: '4:24 PM', tick: '✓✓' },
+        { from: 'me', text: 'Thanks! Try voice/video buttons too.', time: '4:25 PM', tick: '✓✓ blue' }
+      ],
+      LunaVibe: [{ from: 'LunaVibe', text: 'Want playlist links?', time: '4:20 PM', tick: '✓' }],
+      SkyByte: [{ from: 'SkyByte', text: 'Need homework help?', time: '4:19 PM', tick: '✓✓' }],
+      CocoaCloud: [{ from: 'CocoaCloud', text: 'Ping me when free!', time: '4:16 PM', tick: '✓' }]
+    };
+
     let currentUser = `Guest_${Math.floor(Math.random() * 9000 + 1000)}`;
     let currentRoom = 'General';
+    let currentDM = 'NovaKid';
     let privateTarget = '';
     let messageId = 1000;
     let typingTimeout;
+    const settings = { notifications: true, compact: false, muteFakeReplies: false };
 
-    const settings = {
-      notifications: true,
-      compact: false,
-      muteFakeReplies: false
-    };
+    function notify(msg) {
+      if (!settings.notifications) return;
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
 
     function switchPage(id) {
-      pages.forEach(page => page.classList.toggle('active', page.id === id));
+      pages.forEach(p => p.classList.toggle('active', p.id === id));
       if (id === 'chat') {
         currentUserLabel.textContent = currentUser;
         activeRoomLabel.textContent = `#${currentRoom}`;
@@ -570,26 +400,25 @@
         renderUsers();
         renderStories();
         renderMessages();
+        renderDMContacts();
+        renderDMThread();
         roomStat.textContent = `Room: ${currentRoom}`;
       }
     }
 
     goButtons.forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.go)));
 
-    function notify(message) {
-      if (!settings.notifications) return;
-      toast.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 1400);
+    function getTime() {
+      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     function renderRooms() {
       roomListEl.innerHTML = '';
       rooms.forEach(room => {
-        const btn = document.createElement('button');
-        btn.textContent = `# ${room}`;
-        if (room === currentRoom) btn.classList.add('active');
-        btn.addEventListener('click', () => {
+        const b = document.createElement('button');
+        b.textContent = `# ${room}`;
+        if (room === currentRoom) b.classList.add('active');
+        b.addEventListener('click', () => {
           currentRoom = room;
           activeRoomLabel.textContent = `#${room}`;
           roomStat.textContent = `Room: ${room}`;
@@ -597,84 +426,46 @@
           renderMessages();
           notify(`Switched to #${room}`);
         });
-        roomListEl.appendChild(btn);
+        roomListEl.appendChild(b);
       });
     }
 
     function renderUsers() {
       usersListEl.innerHTML = '';
-      const search = searchUsersEl.value.trim().toLowerCase();
-      [currentUser, ...users]
-        .filter(name => name.toLowerCase().includes(search))
-        .forEach(name => {
-          const item = document.createElement('div');
-          item.className = 'user';
-          item.innerHTML = `<span>${name}</span><span style="color:var(--green)">●</span>`;
-          item.addEventListener('click', () => openPrivate(name));
-          usersListEl.appendChild(item);
-        });
+      const q = searchUsersEl.value.trim().toLowerCase();
+      [currentUser, ...users].filter(u => u.toLowerCase().includes(q)).forEach(u => {
+        const el = document.createElement('div');
+        el.className = 'user';
+        el.innerHTML = `<span>${u}</span><span style="color:var(--ok)">●</span>`;
+        el.addEventListener('click', () => openPrivate(u));
+        usersListEl.appendChild(el);
+      });
     }
 
     function renderStories() {
       storiesRow.innerHTML = '';
       [currentUser, ...users].slice(0, 8).forEach(name => {
-        const story = document.createElement('button');
-        story.className = 'story';
-        story.innerHTML = `
-          <div class="ring"><div class="ring-inner">${name[0]}</div></div>
-          <div>${name.slice(0, 8)}</div>
-        `;
-        story.addEventListener('click', () => openPrivate(name));
-        storiesRow.appendChild(story);
+        const s = document.createElement('button');
+        s.className = 'story';
+        s.innerHTML = `<div class="ring"><div class="ring-inner">${name[0]}</div></div><div>${name.slice(0,8)}</div>`;
+        s.addEventListener('click', () => openPrivate(name));
+        storiesRow.appendChild(s);
       });
-    }
-
-    function updateMessageStats() {
-      messageStat.textContent = `Messages: ${messagesEl.querySelectorAll('.msg').length}`;
-    }
-
-    function getTime() {
-      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     function messageTools(node, msg) {
       const tools = document.createElement('div');
       tools.className = 'msg-tools';
-
       const react = document.createElement('button');
       react.textContent = '❤️ React';
-      react.addEventListener('click', () => {
-        msg.reactions = (msg.reactions || 0) + 1;
-        node.querySelector('[data-react]').textContent = `❤️ ${msg.reactions}`;
-      });
-
+      react.onclick = () => { msg.reactions = (msg.reactions || 0) + 1; node.querySelector('[data-react]').textContent = `❤️ ${msg.reactions}`; };
       const reply = document.createElement('button');
       reply.textContent = 'Reply';
-      reply.addEventListener('click', () => {
-        chatInput.value = `@${msg.user} `;
-        chatInput.focus();
-      });
-
+      reply.onclick = () => { chatInput.value = `@${msg.user} `; chatInput.focus(); };
       const pin = document.createElement('button');
       pin.textContent = 'Pin';
-      pin.addEventListener('click', () => {
-        pinnedBar.textContent = `📌 Pinned: ${msg.user} — ${msg.text}`;
-        notify('Message pinned');
-      });
-
-      const edit = document.createElement('button');
-      edit.textContent = 'Edit';
-      edit.addEventListener('click', () => {
-        if (msg.user !== currentUser) return notify('Edit allowed only for your messages');
-        const next = prompt('Edit your message', msg.text);
-        if (next && next.trim()) {
-          msg.text = next.trim();
-          node.querySelector('[data-text]').textContent = msg.text;
-          notify('Message edited');
-        }
-      });
-
-      tools.append(react, reply, pin, edit);
+      pin.onclick = () => { pinnedBar.textContent = `📌 Pinned: ${msg.user} — ${msg.text}`; notify('Message pinned'); };
+      tools.append(react, reply, pin);
       node.appendChild(tools);
 
       if (msg.admin || msg.user === 'ModZed') {
@@ -683,13 +474,10 @@
         ['Kick user', 'Ban user', 'Delete message'].forEach(action => {
           const b = document.createElement('button');
           b.textContent = action;
-          b.addEventListener('click', () => {
-            if (action === 'Delete message') {
-              node.remove();
-              notify('Message deleted');
-              updateMessageStats();
-            } else notify(`${action}: ${msg.user}`);
-          });
+          b.onclick = () => {
+            if (action === 'Delete message') { node.remove(); updateMessageStat(); notify('Message deleted'); }
+            else notify(`${action}: ${msg.user}`);
+          };
           admin.appendChild(b);
         });
         node.appendChild(admin);
@@ -700,96 +488,170 @@
       const item = document.createElement('article');
       item.className = 'msg';
       if (settings.compact) item.style.padding = '6px';
-      item.innerHTML = `
-        <div class="msg-head"><span><strong>${msg.user}</strong></span><span class="muted">${msg.time}</span></div>
-        <p data-text>${msg.text}</p>
-        <div class="muted" data-react>❤️ ${msg.reactions || 0}</div>
-      `;
+      item.innerHTML = `<div class="msg-head"><span><strong>${msg.user}</strong></span><span class="muted">${msg.time}</span></div><p>${msg.text}</p><div class="muted" data-react>❤️ ${msg.reactions || 0}</div>`;
       messageTools(item, msg);
       return item;
     }
 
     function renderMessages() {
       messagesEl.innerHTML = '';
-      roomMessages[currentRoom].forEach(msg => messagesEl.appendChild(renderMsgNode(msg)));
+      roomMessages[currentRoom].forEach(m => messagesEl.appendChild(renderMsgNode(m)));
       messagesEl.scrollTop = messagesEl.scrollHeight;
-      updateMessageStats();
+      updateMessageStat();
     }
 
-    function postMessage(text, user = currentUser) {
+    function updateMessageStat() {
+      messageStat.textContent = `Messages: ${messagesEl.querySelectorAll('.msg').length}`;
+    }
+
+    function postPublic(text, user = currentUser) {
       const msg = { id: messageId++, user, text, time: getTime(), reactions: 0 };
       roomMessages[currentRoom].push(msg);
       messagesEl.appendChild(renderMsgNode(msg));
       messagesEl.scrollTop = messagesEl.scrollHeight;
-      updateMessageStats();
+      updateMessageStat();
     }
 
-    function fakeReply() {
+    function fakePublicReply() {
       if (settings.muteFakeReplies) return;
       const names = ['NovaKid', 'LunaVibe', 'SkyByte'];
-      const lines = ['That gradient is clean.', 'Check stories row 😎', 'Private me for collab?', 'Love this room vibe ✨'];
-      postMessage(lines[Math.floor(Math.random() * lines.length)], names[Math.floor(Math.random() * names.length)]);
+      const lines = ['Try one-to-one chat tab!', 'WhatsApp style bubbles look good 🔥', 'Voice call icon is just demo UI.'];
+      postPublic(lines[Math.floor(Math.random() * lines.length)], names[Math.floor(Math.random() * names.length)]);
+    }
+
+    function renderDMContacts() {
+      dmContactsEl.innerHTML = '';
+      dmContacts.forEach(c => {
+        const row = document.createElement('div');
+        row.className = `contact ${c.name === currentDM ? 'active' : ''}`;
+        row.innerHTML = `<div class="contact-top"><strong>${c.name}</strong><span>${c.unread ? `<span class='badge'>${c.unread}</span>` : ''}</span></div><div class="muted" style="font-size:.74rem;">${c.blocked ? 'blocked' : c.lastSeen}</div>`;
+        row.onclick = () => { currentDM = c.name; c.unread = 0; renderDMContacts(); renderDMThread(); };
+        dmContactsEl.appendChild(row);
+      });
+    }
+
+    function tickDecor(tick) {
+      if (!tick) return '';
+      return tick.includes('blue') ? '✓✓ 🔵' : tick;
+    }
+
+    function renderDMThread() {
+      const contact = dmContacts.find(c => c.name === currentDM);
+      dmTargetName.textContent = contact ? contact.name : 'Select contact';
+      dmTargetStatus.textContent = contact ? (contact.blocked ? 'Blocked contact' : contact.lastSeen) : '';
+      dmMessagesEl.innerHTML = '';
+      (dmThreads[currentDM] || []).forEach(m => {
+        const b = document.createElement('div');
+        b.className = `bubble ${m.from === 'me' ? 'out' : 'in'}`;
+        b.innerHTML = `${m.text}<span class="bubble-meta">${m.time} ${m.from === 'me' ? tickDecor(m.tick) : ''}</span>`;
+        dmMessagesEl.appendChild(b);
+      });
+      dmMessagesEl.scrollTop = dmMessagesEl.scrollHeight;
+    }
+
+    function postDM(text) {
+      if (!currentDM) return;
+      const contact = dmContacts.find(c => c.name === currentDM);
+      if (contact && contact.blocked) return notify('Unblock contact first');
+
+      dmThreads[currentDM] = dmThreads[currentDM] || [];
+      dmThreads[currentDM].push({ from: 'me', text, time: getTime(), tick: '✓' });
+      renderDMThread();
+
+      setTimeout(() => {
+        const mine = dmThreads[currentDM].findLast(m => m.from === 'me' && m.tick === '✓');
+        if (mine) mine.tick = '✓✓';
+        renderDMThread();
+      }, 700);
+
+      setTimeout(() => {
+        const mine = dmThreads[currentDM].findLast(m => m.from === 'me' && m.tick === '✓✓');
+        if (mine) mine.tick = '✓✓ blue';
+        renderDMThread();
+      }, 1400);
+
+      setTimeout(() => {
+        dmThreads[currentDM].push({ from: currentDM, text: 'Got it 👍', time: getTime(), tick: '✓✓' });
+        renderDMThread();
+      }, 1700);
     }
 
     function openPrivate(name) {
       if (name === currentUser) return;
       privateTarget = name;
       privateTitle.textContent = `Private: ${name}`;
-      privateBody.innerHTML = `<article class="msg"><div class="msg-head"><strong>${name}</strong><span class="muted">now</span></div><p>Hey ${currentUser}, welcome to private chat 👋</p></article>`;
+      privateBody.innerHTML = `<article class="msg"><div class="msg-head"><strong>${name}</strong><span class="muted">now</span></div><p>Quick popup DM preview 👋</p></article>`;
       privatePopup.classList.add('active');
     }
 
-    chatForm.addEventListener('submit', e => {
+    tabPublic.onclick = () => {
+      tabPublic.classList.add('active'); tabDM.classList.remove('active');
+      publicPanel.classList.add('active'); dmPanel.classList.remove('active');
+      notify('Public room mode');
+    };
+
+    tabDM.onclick = () => {
+      tabDM.classList.add('active'); tabPublic.classList.remove('active');
+      dmPanel.classList.add('active'); publicPanel.classList.remove('active');
+      notify('One-to-one chat mode');
+    };
+
+    chatForm.onsubmit = (e) => {
       e.preventDefault();
       const text = chatInput.value.trim();
       if (!text) return;
-      postMessage(text);
+      postPublic(text);
       chatInput.value = '';
-      setTimeout(fakeReply, 500 + Math.random() * 900);
-    });
+      setTimeout(fakePublicReply, 700);
+    };
 
-    chatInput.addEventListener('input', () => {
+    dmForm.onsubmit = (e) => {
+      e.preventDefault();
+      const text = dmInput.value.trim();
+      if (!text) return;
+      postDM(text);
+      dmInput.value = '';
+    };
+
+    chatInput.oninput = () => {
       typingIndicatorEl.textContent = `${currentUser} is typing...`;
       clearTimeout(typingTimeout);
       typingTimeout = setTimeout(() => typingIndicatorEl.textContent = '', 900);
-    });
+    };
 
-    emojiBtn.addEventListener('click', () => {
-      chatInput.value += ' 😊';
-      chatInput.focus();
-    });
+    emojiBtn.onclick = () => { chatInput.value += ' 😊'; chatInput.focus(); };
+    attachBtn.onclick = () => notify('Public attachment UI (demo)');
+    dmEmojiBtn.onclick = () => { dmInput.value += ' 😊'; dmInput.focus(); };
+    dmAttachBtn.onclick = () => notify('DM attachment UI (demo)');
 
-    attachBtn.addEventListener('click', () => notify('Attachment option (UI demo)'));
-    searchUsersEl.addEventListener('input', renderUsers);
+    voiceCallBtn.onclick = () => notify(`Starting voice call with ${currentDM} (demo)`);
+    videoCallBtn.onclick = () => notify(`Starting video call with ${currentDM} (demo)`);
+    blockBtn.onclick = () => {
+      const c = dmContacts.find(x => x.name === currentDM);
+      if (!c) return;
+      c.blocked = !c.blocked;
+      blockBtn.textContent = c.blocked ? '✅ Unblock' : '🚫 Block';
+      renderDMContacts();
+      renderDMThread();
+      notify(c.blocked ? `${currentDM} blocked` : `${currentDM} unblocked`);
+    };
 
-    addPollBtn.addEventListener('click', () => {
-      const question = prompt('Poll question', 'Which theme do you like most?');
-      if (!question) return;
-      postMessage(`📊 Poll: ${question} [A/B/C in chat]`);
-      notify('Poll added');
-    });
-
-    clearRoomBtn.addEventListener('click', () => {
-      roomMessages[currentRoom] = [];
-      renderMessages();
-      notify('Room cleared');
-    });
-
-    settingsBtn.addEventListener('click', () => settingsPopup.classList.add('active'));
-    closeSettings.addEventListener('click', () => settingsPopup.classList.remove('active'));
-
-    saveSettingsBtn.addEventListener('click', () => {
+    settingsBtn.onclick = () => settingsPopup.classList.add('active');
+    closeSettings.onclick = () => settingsPopup.classList.remove('active');
+    saveSettingsBtn.onclick = () => {
       settings.notifications = notifToggle.checked;
       settings.compact = compactToggle.checked;
       settings.muteFakeReplies = muteToggle.checked;
       settingsPopup.classList.remove('active');
       renderMessages();
       notify('Settings updated');
-    });
+    };
 
-    closePrivate.addEventListener('click', () => privatePopup.classList.remove('active'));
+    clearRoomBtn.onclick = () => { roomMessages[currentRoom] = []; renderMessages(); notify('Room cleared'); };
+    searchUsersEl.oninput = renderUsers;
 
-    privateForm.addEventListener('submit', e => {
+    closePrivate.onclick = () => privatePopup.classList.remove('active');
+    privateForm.onsubmit = (e) => {
       e.preventDefault();
       const text = privateInput.value.trim();
       if (!text || !privateTarget) return;
@@ -799,17 +661,15 @@
       privateBody.appendChild(me);
       privateBody.scrollTop = privateBody.scrollHeight;
       privateInput.value = '';
-    });
+    };
 
-    enterGuest.addEventListener('click', () => {
+    enterGuest.onclick = () => {
       currentUser = guestNameEl.value.trim() || `Guest_${Math.floor(Math.random() * 9000 + 1000)}`;
       currentRoom = guestRoomEl.value;
       switchPage('chat');
-    });
+    };
 
-    setInterval(() => {
-      onlineCountEl.textContent = 560 + Math.floor(Math.random() * 120);
-    }, 3200);
+    setInterval(() => { onlineCountEl.textContent = 600 + Math.floor(Math.random() * 120); }, 3200);
   </script>
 </body>
 </html>
