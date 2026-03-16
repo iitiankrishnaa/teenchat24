@@ -151,6 +151,10 @@
       overflow: hidden;
     }
     .avatar.lg { width: 46px; height: 46px; }
+    .profile-reel { margin-top: 8px; border: 1px solid var(--line); border-radius: 10px; background: #161c2c; padding: 6px; }
+    .profile-reel video { width: 100%; max-height: 170px; border-radius: 8px; background: #0d1220; }
+    .profile-reel .muted { font-size: .74rem; margin-top: 4px; }
+
 
     .private-popup, .settings-popup { position: fixed; right: 16px; bottom: 16px; width: min(370px, 92vw); padding: 10px; display: none; z-index: 20; }
     .private-popup.active, .settings-popup.active { display: block; }
@@ -335,7 +339,11 @@
                 <div id="myProfileAbout" class="muted" style="font-size:.76rem;">About: Hey there! I'm using TeenTalk.</div>
               </div>
             </div>
-            <button class="btn" id="editProfileBtn" style="width:100%;">Edit About & Profile Picture</button>
+            <div class="profile-reel" id="myProfileReelBox">
+              <video id="myProfileVideo" controls muted loop playsinline></video>
+              <div id="myProfileVideoHint" class="muted">No profile video uploaded</div>
+            </div>
+            <button class="btn" id="editProfileBtn" style="width:100%; margin-top:8px;">Edit About, Picture & Video</button>
           </div>
         </aside>
       </div>
@@ -362,8 +370,15 @@
     <input id="profilePicInput" placeholder="https://..." style="margin-bottom:8px;" />
     <label class="muted" style="display:block; margin-bottom:6px;">About</label>
     <input id="aboutInput" maxlength="80" placeholder="Hey there! I'm using TeenTalk." style="margin-bottom:8px;" />
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+
+    <label class="muted" style="display:block; margin-bottom:6px;">Profile Video URL (Instagram style reel)</label>
+    <input id="profileVideoInput" placeholder="https://...mp4" style="margin-bottom:8px;" />
+    <button class="btn ghost" id="uploadProfileVideoBtn" style="width:100%; margin-bottom:8px;">Upload Profile Video (max 50MB)</button>
+    <input id="profileVideoFileInput" type="file" accept="video/*" hidden />
+
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
       <button class="btn danger" id="removePicBtn">Remove Picture</button>
+      <button class="btn danger" id="removeVideoBtn">Remove Video</button>
       <button class="btn primary" id="saveProfileBtn">Save Profile</button>
     </div>
   </aside>
@@ -456,9 +471,15 @@
     const aboutInput = document.getElementById('aboutInput');
     const saveProfileBtn = document.getElementById('saveProfileBtn');
     const removePicBtn = document.getElementById('removePicBtn');
+    const removeVideoBtn = document.getElementById('removeVideoBtn');
+    const profileVideoInput = document.getElementById('profileVideoInput');
+    const uploadProfileVideoBtn = document.getElementById('uploadProfileVideoBtn');
+    const profileVideoFileInput = document.getElementById('profileVideoFileInput');
     const myProfileAvatar = document.getElementById('myProfileAvatar');
     const myProfileName = document.getElementById('myProfileName');
     const myProfileAbout = document.getElementById('myProfileAbout');
+    const myProfileVideo = document.getElementById('myProfileVideo');
+    const myProfileVideoHint = document.getElementById('myProfileVideoHint');
 
     const privatePopup = document.getElementById('privatePopup');
     const privateTitle = document.getElementById('privateTitle');
@@ -488,7 +509,7 @@
     let socket = null;
 
     const settings = { notifications: true, compact: false, muteFakeReplies: false };
-    const profile = { about: "Hey there! I'm using TeenTalk.", photoUrl: '' };
+    const profile = { about: "Hey there! I'm using TeenTalk.", photoUrl: '', videoUrl: '' };
     const dmThreads = {};
     const blockedContacts = new Set();
     let localLiveStream = null;
@@ -547,6 +568,18 @@
       myProfileAvatar.src = avatarFor(currentUser, profile.photoUrl);
       profilePicInput.value = profile.photoUrl;
       aboutInput.value = profile.about;
+      profileVideoInput.value = profile.videoUrl || '';
+
+      if (profile.videoUrl) {
+        myProfileVideo.src = profile.videoUrl;
+        myProfileVideo.style.display = 'block';
+        myProfileVideoHint.textContent = 'Profile video ready';
+      } else {
+        myProfileVideo.removeAttribute('src');
+        myProfileVideo.load();
+        myProfileVideo.style.display = 'none';
+        myProfileVideoHint.textContent = 'No profile video uploaded';
+      }
     }
 
     async function loadRooms() {
@@ -1087,6 +1120,8 @@
       profile.about = aboutInput.value.trim() || "Hey there! I'm using TeenTalk.";
       const maybeUrl = profilePicInput.value.trim();
       profile.photoUrl = /^https?:\/\//i.test(maybeUrl) ? maybeUrl : '';
+      const videoMaybeUrl = profileVideoInput.value.trim();
+      profile.videoUrl = /^https?:\/\//i.test(videoMaybeUrl) ? videoMaybeUrl : profile.videoUrl;
       profilePopup.classList.remove('active');
       renderMyProfileCard();
       notify('Profile updated');
@@ -1097,6 +1132,34 @@
       profilePicInput.value = '';
       renderMyProfileCard();
       notify('Profile picture removed');
+    };
+
+    removeVideoBtn.onclick = () => {
+      profile.videoUrl = '';
+      profileVideoInput.value = '';
+      renderMyProfileCard();
+      notify('Profile video removed');
+    };
+
+    uploadProfileVideoBtn.onclick = () => profileVideoFileInput.click();
+    profileVideoFileInput.onchange = () => {
+      const file = profileVideoFileInput.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('video/')) {
+        notify('Please select a valid video file');
+        profileVideoFileInput.value = '';
+        return;
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        notify('Profile video max size is 50MB');
+        profileVideoFileInput.value = '';
+        return;
+      }
+      profile.videoUrl = URL.createObjectURL(file);
+      profileVideoInput.value = '';
+      renderMyProfileCard();
+      notify('Profile video uploaded');
+      profileVideoFileInput.value = '';
     };
 
     closeCall.onclick = () => { callPopup.classList.remove('active'); notify('Call closed'); };
