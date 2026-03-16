@@ -9,25 +9,31 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0f1014;
-      --panel: #171923;
-      --soft: #1f2433;
-      --line: rgba(255,255,255,.12);
-      --text: #f6f8ff;
-      --muted: #a8afc6;
+      --bg: #0b0f18;
+      --panel: #121827;
+      --soft: #1b2236;
+      --line: rgba(184, 198, 255, 0.16);
+      --text: #f3f6ff;
+      --muted: #9aa6c9;
       --ok: #4dd08d;
       --danger: #ff5d7f;
-      --grad: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+      --grad: linear-gradient(135deg, #8b5cf6, #4f46e5, #06b6d4);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 12px 30px rgba(4, 10, 24, 0.45);
+      --shadow-focus: 0 0 0 3px rgba(79, 70, 229, 0.2);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: Inter, system-ui, sans-serif;
       min-height: 100vh;
       color: var(--text);
-      background: radial-gradient(circle at 10% 10%, rgba(214,41,118,.2), transparent 30%),
-                  radial-gradient(circle at 92% 20%, rgba(79,91,213,.15), transparent 30%),
-                  #0f1014;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(79,70,229,.24), transparent 30%),
+        radial-gradient(circle at 88% 18%, rgba(6,182,212,.14), transparent 30%),
+        linear-gradient(160deg, #0b0f18 0%, #0e1422 46%, #121827 100%);
       overflow: hidden;
+      letter-spacing: .01em;
     }
     .app { height: 100vh; overflow: auto; padding: 16px; position: relative; }
     .page {
@@ -47,22 +53,23 @@
       overflow: visible;
       visibility: visible;
     }
-    .glass { background: rgba(23,25,35,.9); border: 1px solid var(--line); border-radius: 16px; }
-    .logo { font-size: clamp(2rem, 7vw, 4rem); font-weight: 800; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .glass { background: rgba(18, 24, 39, .88); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); }
+    .logo { font-size: clamp(2rem, 7vw, 4rem); font-weight: 800; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -.02em; }
     .muted { color: var(--muted); }
-    .btn { border: 1px solid transparent; border-radius: 12px; background: #2a2f40; color: var(--text); padding: 10px 14px; font-weight: 700; font-size: .9rem; cursor: pointer; }
-    .btn:hover { transform: translateY(-1px); }
-    .btn.primary { background: var(--grad); }
-    .btn.ghost { background: transparent; border-color: var(--line); }
+    .btn { border: 1px solid transparent; border-radius: var(--radius-md); background: #27314a; color: var(--text); padding: 10px 14px; font-weight: 700; font-size: .9rem; cursor: pointer; transition: all .2s ease; }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+    .btn.primary { background: var(--grad); color: #f7fbff; box-shadow: 0 6px 16px rgba(79,70,229,.35); }
+    .btn.ghost { background: rgba(255,255,255,.02); border-color: var(--line); }
     .btn.danger { border-color: rgba(255,93,127,.5); background: rgba(255,93,127,.12); }
-    input, select { width: 100%; background: #1d2130; color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+    input, select { width: 100%; background: #1a2236; color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px; transition: border-color .2s ease, box-shadow .2s ease; }
+    input:focus, select:focus { outline: none; border-color: rgba(79,70,229,.75); box-shadow: var(--shadow-focus); }
 
     .home { min-height: calc(100vh - 32px); display: grid; place-items: center; }
     .home-card { width: min(940px, 98vw); text-align: center; padding: clamp(24px, 4vw, 40px); }
     .counter { margin: 12px auto; display: inline-flex; gap: 8px; color: var(--ok); font-weight: 700; }
     .actions { margin: 16px 0 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
     .feature-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); text-align: left; }
-    .feature-card { padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: #1f2433; }
+    .feature-card { padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #1a2236; }
 
     .panel-page { max-width: 900px; margin: 0 auto; }
     .panel-page .glass { padding: 18px; }
@@ -70,11 +77,11 @@
     .form-grid { width: min(470px, 96vw); margin: 0 auto; display: grid; gap: 10px; }
 
     .chat-page { height: calc(100vh - 32px); display: grid; grid-template-rows: auto auto 1fr; gap: 10px; }
-    .topbar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 10px; }
+    .topbar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 12px; backdrop-filter: blur(8px); }
     .top-left, .top-right { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     .pill { border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; font-size: .75rem; }
 
-    .stories { padding: 10px; display: flex; gap: 10px; overflow: auto; }
+    .stories { padding: 12px; display: flex; gap: 12px; overflow: auto; background: rgba(255,255,255,.015); }
     .story { min-width: 84px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
     .ring { width: 56px; height: 56px; margin: 0 auto 4px; border-radius: 50%; padding: 2px; background: var(--grad); }
     .ring-inner { width: 100%; height: 100%; border-radius: 50%; display: grid; place-items: center; background: #11131c; color: white; font-weight: 700; }
@@ -82,8 +89,8 @@
     .chat-layout { min-height: 0; display: grid; grid-template-columns: 250px 1fr 250px; gap: 10px; }
     .side, .main, .meta { min-height: 0; padding: 10px; }
     .small-title { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 7px; }
-    .room-list button { width: 100%; text-align: left; margin-bottom: 6px; padding: 8px; border-radius: 10px; border: 1px solid transparent; background: #252a3b; color: var(--text); cursor: pointer; }
-    .room-list button.active { border-color: #d62976; }
+    .room-list button { width: 100%; text-align: left; margin-bottom: 6px; padding: 9px; border-radius: 10px; border: 1px solid transparent; background: #202942; color: var(--text); cursor: pointer; }
+    .room-list button.active { border-color: #4f46e5; box-shadow: inset 0 0 0 1px rgba(79,70,229,.35); }
     .users { max-height: 170px; overflow: auto; }
     .user { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding: 8px; border-radius: 10px; border: 1px solid transparent; background: #23283a; cursor: pointer; }
     .user:hover { border-color: #8a5cff; }
@@ -97,7 +104,7 @@
     .panel.active { display: block; }
     .pinned { padding: 8px 10px; border: 1px solid rgba(254,218,117,.45); background: rgba(254,218,117,.12); border-radius: 10px; margin-bottom: 8px; font-size: .85rem; }
     .messages { height: calc(100% - 135px); overflow: auto; display: grid; gap: 8px; padding-right: 2px; }
-    .msg { border: 1px solid var(--line); border-radius: 10px; background: #1f2433; padding: 9px; }
+    .msg { border: 1px solid var(--line); border-radius: 10px; background: #1a2338; padding: 10px; }
 
     .file-card { margin-top: 6px; padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: #22293d; }
     .file-meta { font-size: .78rem; color: var(--muted); }
@@ -134,7 +141,7 @@
     .bubble-meta { display: block; font-size: .68rem; margin-top: 3px; opacity: .8; text-align: right; }
     .dm-compose { display: grid; grid-template-columns: auto 1fr auto auto; gap: 6px; }
 
-    .meta-card { border: 1px solid var(--line); border-radius: 10px; background: #20263a; padding: 9px; margin-bottom: 8px; font-size: .84rem; }
+    .meta-card { border: 1px solid var(--line); border-radius: 10px; background: #1a2236; padding: 10px; margin-bottom: 9px; font-size: .84rem; }
 
     .profile-chip { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
     .avatar {
